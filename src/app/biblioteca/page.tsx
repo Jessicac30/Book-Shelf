@@ -9,9 +9,11 @@ import { useNotification } from '@/components/notification'
 import { Book } from '@/types/book'
 import { Edit, Trash2, Plus } from 'lucide-react'
 import { DefaultBookCover } from '@/components/default-book-cover'
+import { ConfirmModal } from '@/components/confirm-modal'
 
 export default function BibliotecaPage() {
   const [books, setBooks] = useState<Book[]>([])
+  const [bookToDelete, setBookToDelete] = useState<Book | null>(null)
   const router = useRouter()
   const { showNotification } = useNotification()
 
@@ -24,15 +26,24 @@ export default function BibliotecaPage() {
   }
 
   const handleDelete = (book: Book) => {
-    if (window.confirm(`Tem certeza que deseja excluir o livro "${book.title}"?`)) {
-      const success = bookService.deleteBook(book.id)
+    setBookToDelete(book)
+  }
+
+  const confirmDelete = () => {
+    if (bookToDelete) {
+      const success = bookService.deleteBook(bookToDelete.id)
       if (success) {
         setBooks(bookService.getAllBooks())
-        showNotification('success', `Livro "${book.title}" excluído com sucesso!`)
+        showNotification('success', `Livro "${bookToDelete.title}" excluído com sucesso!`)
       } else {
         showNotification('error', 'Erro ao excluir o livro.')
       }
+      setBookToDelete(null)
     }
+  }
+
+  const cancelDelete = () => {
+    setBookToDelete(null)
   }
 
   const handleAddNew = () => {
@@ -65,10 +76,35 @@ export default function BibliotecaPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Biblioteca</h2>
-        <Button onClick={handleAddNew}>
-          <Plus size={16} className="mr-2" />
-          Adicionar Livro
-        </Button>
+        <button
+          onClick={handleAddNew}
+          className="
+            group relative inline-flex items-center px-6 py-3 text-white font-semibold rounded-lg
+            bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500
+            hover:from-blue-600 hover:via-purple-600 hover:to-pink-600
+            transform hover:scale-105 hover:shadow-xl
+            transition-all duration-300 ease-in-out
+            before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r
+            before:from-blue-400 before:via-purple-400 before:to-pink-400
+            before:opacity-0 before:transition-opacity before:duration-300
+            hover:before:opacity-20
+            focus:outline-none focus:ring-4 focus:ring-purple-500/50
+            active:scale-95
+            overflow-hidden
+          "
+        >
+          <Plus size={18} className="mr-2 drop-shadow-sm" />
+          <span className="drop-shadow-sm">Adicionar Livro</span>
+
+          {/* Shine effect */}
+          <div className="
+            absolute inset-0 rounded-lg opacity-0
+            bg-gradient-to-r from-transparent via-white/20 to-transparent
+            transform -skew-x-12 -translate-x-full
+            group-hover:translate-x-full group-hover:opacity-100
+            transition-all duration-700 ease-in-out
+          " />
+        </button>
       </div>
 
       {books.length === 0 ? (
@@ -82,19 +118,19 @@ export default function BibliotecaPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {books.map((book) => (
-            <Card key={book.id} className="h-full flex flex-col">
+            <Card key={book.id} className="h-full flex flex-col hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
-                    <CardTitle className="text-lg leading-tight">{book.title}</CardTitle>
+                    <CardTitle className="text-lg leading-tight group-hover:text-blue-600 transition-colors duration-300">{book.title}</CardTitle>
                     <CardDescription className="mt-1">{book.author}</CardDescription>
                   </div>
-                  <div className="w-16 h-20 rounded overflow-hidden flex-shrink-0">
+                  <div className="w-16 h-20 rounded overflow-hidden flex-shrink-0 group-hover:shadow-lg transition-shadow duration-300">
                     {book.cover ? (
                       <img
                         src={book.cover}
                         alt={`Capa de ${book.title}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none'
                           e.currentTarget.nextElementSibling?.classList.remove('hidden')
@@ -106,7 +142,7 @@ export default function BibliotecaPage() {
                         title={book.title}
                         author={book.author}
                         genre={book.genre}
-                        className="w-full h-full rounded text-xs"
+                        className="w-full h-full rounded text-xs group-hover:scale-110 transition-transform duration-300"
                       />
                     </div>
                   </div>
@@ -152,12 +188,12 @@ export default function BibliotecaPage() {
                   )}
                 </div>
 
-                <div className="flex gap-2 mt-4 pt-4 border-t">
+                <div className="flex gap-2 mt-4 pt-4 border-t opacity-80 group-hover:opacity-100 transition-opacity duration-300">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleEdit(book.id)}
-                    className="flex-1"
+                    className="flex-1 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-200"
                   >
                     <Edit size={14} className="mr-1" />
                     Editar
@@ -166,7 +202,7 @@ export default function BibliotecaPage() {
                     variant="destructive"
                     size="sm"
                     onClick={() => handleDelete(book)}
-                    className="flex-1"
+                    className="flex-1 hover:bg-red-600 transition-all duration-200"
                   >
                     <Trash2 size={14} className="mr-1" />
                     Excluir
@@ -177,6 +213,42 @@ export default function BibliotecaPage() {
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!bookToDelete}
+        title="Excluir Livro"
+        message={bookToDelete ? `Tem certeza que deseja excluir "${bookToDelete.title}" de ${bookToDelete.author}? Esta ação não pode ser desfeita.` : ''}
+        confirmText="Sim, excluir"
+        cancelText="Cancelar"
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        type="danger"
+      />
+
+      {/* Floating Action Button */}
+      <button
+        onClick={handleAddNew}
+        className="
+          group fixed bottom-6 right-6 z-40
+          w-14 h-14 rounded-full
+          bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500
+          hover:from-blue-600 hover:via-purple-600 hover:to-pink-600
+          shadow-lg hover:shadow-2xl
+          transform hover:scale-110 active:scale-95
+          transition-all duration-300 ease-in-out
+          flex items-center justify-center
+          text-white
+          border-2 border-white/20
+          backdrop-blur-sm
+          overflow-hidden
+        "
+        title="Adicionar novo livro"
+      >
+        <Plus size={24} className="drop-shadow-lg transition-transform group-hover:rotate-90 duration-300" />
+
+        {/* Glow effect */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-sm" />
+      </button>
     </div>
   )
 }
