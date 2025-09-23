@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { Book, BookOpen, CheckCircle2, FileText } from 'lucide-react'
 import { StatsCard } from './stats-card'
 import { mockBooks } from '@/data/mock-books'
@@ -42,32 +43,61 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="Total de Livros"
-          value={stats.totalBooks}
-          description="Livros cadastrados"
-          icon={Book}
-        />
-        <StatsCard
-          title="Lendo Atualmente"
-          value={stats.booksReading}
-          description="Em progresso"
-          icon={BookOpen}
-        />
-        <StatsCard
-          title="Livros Finalizados"
-          value={stats.booksFinished}
-          description="Leituras completas"
-          icon={CheckCircle2}
-        />
-        <StatsCard
-          title="Páginas Lidas"
-          value={stats.totalPagesRead}
-          description="Total de páginas"
-          icon={FileText}
-        />
-      </div>
+      <motion.div
+        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, staggerChildren: 0.1 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <StatsCard
+            title="Total de Livros"
+            value={stats.totalBooks}
+            description="Livros cadastrados"
+            icon={Book}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <StatsCard
+            title="Lendo Atualmente"
+            value={stats.booksReading}
+            description="Em progresso"
+            icon={BookOpen}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <StatsCard
+            title="Livros Finalizados"
+            value={stats.booksFinished}
+            description="Leituras completas"
+            icon={CheckCircle2}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <StatsCard
+            title="Páginas Lidas"
+            value={stats.totalPagesRead}
+            description="Total de páginas"
+            icon={FileText}
+          />
+        </motion.div>
+      </motion.div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
