@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/header'
+import { AnimatedBackground } from '@/components/animated-background'
+import { NotificationProvider } from '@/components/notification'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -18,12 +20,15 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={inter.className}>
-        <div className="min-h-screen bg-background">
-          <Header />
-          <main className="container mx-auto">
-            {children}
-          </main>
-        </div>
+        <NotificationProvider>
+          <div className="min-h-screen relative">
+            <AnimatedBackground />
+            <Header />
+            <main className="container mx-auto relative z-10">
+              {children}
+            </main>
+          </div>
+        </NotificationProvider>
       </body>
     </html>
   )
