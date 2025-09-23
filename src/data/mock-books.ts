@@ -83,5 +83,44 @@ export const mockBooks: Book[] = [
     rating: 5,
     synopsis: 'Um manual sobre como escrever código limpo, legível e maintível. Essential para todo programador.',
     notes: 'Referência obrigatória. Devo reler periodicamente.'
+  },
+  {
+    id: '7',
+    title: 'O Pequeno Príncipe',
+    author: 'Antoine de Saint-Exupéry',
+    genre: 'Ficção',
+    year: 1943,
+    pages: 96,
+    currentPage: 50,
+    status: 'LENDO',
+    cover: 'https://m.media-amazon.com/images/I/51YVuN9+CWL._SY445_SX342_.jpg',
+    rating: 4,
+    synopsis: 'Uma fábula poética sobre um pequeno príncipe que viaja de planeta em planeta fazendo perguntas que o ajudam, e a nós, a compreender o mundo.',
+    notes: 'Uma releitura muito especial.'
+  },
+  {
+    id: '8',
+    title: 'Algoritmos e Estruturas de Dados',
+    author: 'Niklaus Wirth',
+    genre: 'Programação',
+    year: 1976,
+    pages: 288,
+    status: 'QUERO_LER',
+    rating: 0,
+    synopsis: 'Um livro clássico sobre algoritmos e estruturas de dados fundamentais para programação.',
+    notes: 'Recomendado na faculdade.'
+  },
+  {
+    id: '9',
+    title: 'Mindset: A Nova Psicologia do Sucesso',
+    author: 'Carol Dweck',
+    genre: 'Psicologia',
+    year: 2006,
+    pages: 312,
+    currentPage: 312,
+    status: 'LIDO',
+    rating: 5,
+    synopsis: 'Como o mindset certo pode transformar sua vida pessoal e profissional.',
+    notes: 'Mudou minha perspectiva sobre aprendizado.'
   }
 ]
