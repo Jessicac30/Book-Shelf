@@ -6,6 +6,7 @@ interface DefaultBookCoverProps {
   author: string
   genre?: Genre
   className?: string
+  onClick?: () => void
 }
 
 const genreColors: Record<string, string> = {
@@ -27,11 +28,14 @@ const genreColors: Record<string, string> = {
   default: 'from-blue-500 to-purple-600'
 }
 
-export function DefaultBookCover({ title, author, genre, className = "" }: DefaultBookCoverProps) {
+export function DefaultBookCover({ title, author, genre, className = "", onClick }: DefaultBookCoverProps) {
   const colorClass = genreColors[genre || 'default'] || genreColors.default
 
   return (
-    <div className={`bg-gradient-to-br ${colorClass} text-white flex flex-col items-center justify-center p-3 text-center ${className}`}>
+    <div 
+      className={`bg-gradient-to-br ${colorClass} text-white flex flex-col items-center justify-center p-3 text-center ${className} ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
       <Book size={24} className="mb-2 opacity-80" />
       <div className="text-xs font-semibold leading-tight mb-1 line-clamp-3">
         {title}

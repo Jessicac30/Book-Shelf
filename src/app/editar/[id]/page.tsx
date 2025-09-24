@@ -1,38 +1,37 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { BookForm } from '@/components/book-form'
 import { bookService } from '@/lib/book-service'
 import { useNotification } from '@/components/notification'
 import { Book } from '@/types/book'
 
-interface EditBookPageProps {
-  params: {
-    id: string
-  }
-}
-
-export default function EditBookPage({ params }: EditBookPageProps) {
+export default function EditBookPage() {
   const router = useRouter()
+  const params = useParams()
   const { showNotification } = useNotification()
   const [book, setBook] = useState<Book | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const foundBook = bookService.getBookById(params.id)
-    if (foundBook) {
-      setBook(foundBook)
-    } else {
-      showNotification('error', 'Livro não encontrado')
-      router.push('/biblioteca')
+    if (params.id) {
+      const foundBook = bookService.getBookById(params.id as string)
+      if (foundBook) {
+        setBook(foundBook)
+      } else {
+        showNotification('error', 'Livro não encontrado')
+        router.push('/biblioteca')
+      }
+      setLoading(false)
     }
-    setLoading(false)
   }, [params.id, router, showNotification])
 
   const handleSubmit = (bookData: Omit<Book, 'id'>) => {
+    if (!params.id) return
+    
     try {
-      const updatedBook = bookService.updateBook(params.id, bookData)
+      const updatedBook = bookService.updateBook(params.id as string, bookData)
       if (updatedBook) {
         showNotification('success', `Livro "${updatedBook.title}" atualizado com sucesso!`)
         router.push('/biblioteca')

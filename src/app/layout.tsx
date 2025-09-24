@@ -1,9 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import { Header } from '@/components/header'
-import { AnimatedBackground } from '@/components/animated-background'
-import { NotificationProvider } from '@/components/notification'
+import { Providers } from '@/components/providers'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -18,17 +16,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <body className={inter.className}>
-        <NotificationProvider>
-          <div className="min-h-screen relative">
-            <AnimatedBackground />
-            <Header />
-            <main className="container mx-auto relative z-10">
-              {children}
-            </main>
-          </div>
-        </NotificationProvider>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   )

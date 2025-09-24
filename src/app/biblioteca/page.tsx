@@ -1,28 +1,115 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { bookService } from '@/lib/book-service'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useBooks } from '@/contexts/BookContext'
 import { useNotification } from '@/components/notification'
-import { Book } from '@/types/book'
-import { Edit, Trash2, Plus } from 'lucide-react'
+import { Book, Genre } from '@/types/book'
+import { Edit, Trash2, Plus, Search, Filter, Eye } from 'lucide-react'
 import { DefaultBookCover } from '@/components/default-book-cover'
 import { ConfirmModal } from '@/components/confirm-modal'
 
-export default function BibliotecaPage() {
-  const [books, setBooks] = useState<Book[]>([])
+function BibliotecaContent() {
+  const [filteredBooks, setFilteredBooks] = useState<Book[]>([])
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedGenre, setSelectedGenre] = useState<Genre | 'all'>('all')
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { showNotification } = useNotification()
+  const { books, deleteBook } = useBooks()
 
   useEffect(() => {
-    setBooks(bookService.getAllBooks())
-  }, [])
+    setFilteredBooks(books)
+  }, [books])
+
+  // Lista de gêneros únicos dos livros
+  const genres: Genre[] = [
+    'Literatura Brasileira',
+    'Ficção Científica',
+    'Realismo Mágico',
+    'Ficção',
+    'Fantasia',
+    'Romance',
+    'Biografia',
+    'História',
+    'Autoajuda',
+    'Tecnologia',
+    'Programação',
+    'Negócios',
+    'Psicologia',
+    'Filosofia',
+    'Poesia'
+  ]
+
+  useEffect(() => {
+    // Aplicar filtros da URL se existirem
+    const urlSearch = searchParams.get('search') || ''
+    const urlGenre = searchParams.get('genre') || 'all'
+    
+    setSearchQuery(urlSearch)
+    setSelectedGenre(urlGenre as Genre | 'all')
+    
+    filterBooks(books, urlSearch, urlGenre as Genre | 'all')
+  }, [searchParams, books])
+
+  const filterBooks = (bookList: Book[], search: string, genre: Genre | 'all') => {
+    let filtered = bookList
+
+    // Filtro por busca (título ou autor)
+    if (search) {
+      filtered = filtered.filter(book =>
+        book.title.toLowerCase().includes(search.toLowerCase()) ||
+        book.author.toLowerCase().includes(search.toLowerCase())
+      )
+    }
+
+    // Filtro por gênero
+    if (genre !== 'all') {
+      filtered = filtered.filter(book => book.genre === genre)
+    }
+
+    setFilteredBooks(filtered)
+  }
+
+  const updateUrlParams = (search: string, genre: Genre | 'all') => {
+    const params = new URLSearchParams()
+    if (search) params.set('search', search)
+    if (genre !== 'all') params.set('genre', genre)
+    
+    const newUrl = params.toString() ? `?${params.toString()}` : '/biblioteca'
+    window.history.replaceState({}, '', newUrl)
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+    filterBooks(books, value, selectedGenre)
+    updateUrlParams(value, selectedGenre)
+  }
+
+  const handleGenreChange = (value: Genre | 'all') => {
+    setSelectedGenre(value)
+    filterBooks(books, searchQuery, value)
+    updateUrlParams(searchQuery, value)
+  }
+
+  const clearFilters = () => {
+    setSearchQuery('')
+    setSelectedGenre('all')
+    setFilteredBooks(books)
+    window.history.replaceState({}, '', '/biblioteca')
+  }
 
   const handleEdit = (bookId: string) => {
     router.push(`/editar/${bookId}`)
+  }
+
+  const handleViewDetails = (bookId: string) => {
+    router.push(`/biblioteca/${bookId}`)
   }
 
   const handleDelete = (book: Book) => {
@@ -31,9 +118,9 @@ export default function BibliotecaPage() {
 
   const confirmDelete = () => {
     if (bookToDelete) {
-      const success = bookService.deleteBook(bookToDelete.id)
+      const success = deleteBook(bookToDelete.id)
       if (success) {
-        setBooks(bookService.getAllBooks())
+        filterBooks(books, searchQuery, selectedGenre)
         showNotification('success', `Livro "${bookToDelete.title}" excluído com sucesso!`)
       } else {
         showNotification('error', 'Erro ao excluir o livro.')
@@ -107,22 +194,90 @@ export default function BibliotecaPage() {
         </button>
       </div>
 
-      {books.length === 0 ? (
+      {/* Filtros e Busca */}
+      <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 rounded-lg border">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Input
+              placeholder="Buscar por título ou autor..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="pl-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Select value={selectedGenre} onValueChange={handleGenreChange}>
+            <SelectTrigger className="w-[180px] focus:ring-2 focus:ring-blue-500">
+              <div className="flex items-center gap-2">
+                <Filter size={16} />
+                <SelectValue placeholder="Filtrar por gênero" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os gêneros</SelectItem>
+              {genres.map((genre) => (
+                <SelectItem key={genre} value={genre}>
+                  {genre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {(searchQuery || selectedGenre !== 'all') && (
+            <Button
+              variant="outline"
+              onClick={clearFilters}
+              className="hover:bg-gray-100"
+            >
+              Limpar
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Resultados */}
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-muted-foreground">
+          {filteredBooks.length === books.length
+            ? `${books.length} livros encontrados`
+            : `${filteredBooks.length} de ${books.length} livros encontrados`}
+        </p>
+      </div>
+
+      {filteredBooks.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center">
             <p className="text-muted-foreground">
-              Nenhum livro encontrado. Comece adicionando um novo livro!
+              {searchQuery || selectedGenre !== 'all' 
+                ? 'Nenhum livro encontrado com os filtros aplicados.'
+                : 'Nenhum livro encontrado. Comece adicionando um novo livro!'
+              }
             </p>
+            {(searchQuery || selectedGenre !== 'all') && (
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="mt-4"
+              >
+                Limpar filtros
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {books.map((book) => (
+          {filteredBooks.map((book) => (
             <Card key={book.id} className="h-full flex flex-col hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
-                    <CardTitle className="text-lg leading-tight group-hover:text-blue-600 transition-colors duration-300">{book.title}</CardTitle>
+                    <CardTitle 
+                      className="text-lg leading-tight group-hover:text-blue-600 transition-colors duration-300 cursor-pointer"
+                      onClick={() => handleViewDetails(book.id)}
+                    >
+                      {book.title}
+                    </CardTitle>
                     <CardDescription className="mt-1">{book.author}</CardDescription>
                   </div>
                   <div className="w-16 h-20 rounded overflow-hidden flex-shrink-0 group-hover:shadow-lg transition-shadow duration-300">
@@ -130,7 +285,8 @@ export default function BibliotecaPage() {
                       <img
                         src={book.cover}
                         alt={`Capa de ${book.title}`}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 cursor-pointer"
+                        onClick={() => handleViewDetails(book.id)}
                         onError={(e) => {
                           e.currentTarget.style.display = 'none'
                           e.currentTarget.nextElementSibling?.classList.remove('hidden')
@@ -142,7 +298,8 @@ export default function BibliotecaPage() {
                         title={book.title}
                         author={book.author}
                         genre={book.genre}
-                        className="w-full h-full rounded text-xs group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-full rounded text-xs group-hover:scale-110 transition-transform duration-300 cursor-pointer"
+                        onClick={() => handleViewDetails(book.id)}
                       />
                     </div>
                   </div>
@@ -166,6 +323,11 @@ export default function BibliotecaPage() {
                   {book.pages && (
                     <p className="text-sm text-muted-foreground">
                       <strong>Páginas:</strong> {book.currentPage || 0}/{book.pages}
+                      {book.pages && book.currentPage && (
+                        <span className="ml-2 text-xs">
+                          ({Math.round((book.currentPage / book.pages) * 100)}%)
+                        </span>
+                      )}
                     </p>
                   )}
 
@@ -189,6 +351,15 @@ export default function BibliotecaPage() {
                 </div>
 
                 <div className="flex gap-2 mt-4 pt-4 border-t opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewDetails(book.id)}
+                    className="flex-1 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all duration-200"
+                  >
+                    <Eye size={14} className="mr-1" />
+                    Ver
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
@@ -250,5 +421,25 @@ export default function BibliotecaPage() {
         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-sm" />
       </button>
     </div>
+  )
+}
+
+export default function BibliotecaPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-300 rounded w-1/4 mb-4"></div>
+          <div className="h-16 bg-gray-300 rounded mb-4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-64 bg-gray-300 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    }>
+      <BibliotecaContent />
+    </Suspense>
   )
 }

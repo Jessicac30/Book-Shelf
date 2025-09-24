@@ -4,33 +4,20 @@ import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Book, BookOpen, CheckCircle2, FileText, Plus } from 'lucide-react'
 import { StatsCard } from './stats-card'
-import { mockBooks } from '@/data/mock-books'
+import { useBooks, useBookStats } from '@/contexts/BookContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 export function Dashboard() {
-  const stats = useMemo(() => {
-    const totalBooks = mockBooks.length
-    const booksReading = mockBooks.filter(book => book.status === 'LENDO').length
-    const booksFinished = mockBooks.filter(book => book.status === 'LIDO').length
-    const totalPagesRead = mockBooks
-      .filter(book => book.status === 'LIDO')
-      .reduce((acc, book) => acc + (book.pages || 0), 0)
-
-    return {
-      totalBooks,
-      booksReading,
-      booksFinished,
-      totalPagesRead
-    }
-  }, [])
+  const { books } = useBooks()
+  const stats = useBookStats()
 
   const recentBooks = useMemo(() => {
-    return mockBooks
+    return books
       .filter(book => book.status === 'LENDO' || book.status === 'LIDO')
       .slice(0, 3)
-  }, [])
+  }, [books])
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -83,7 +70,7 @@ export function Dashboard() {
         >
           <StatsCard
             title="Total de Livros"
-            value={stats.totalBooks}
+            value={stats.total}
             description="Livros cadastrados"
             icon={Book}
           />
@@ -95,7 +82,7 @@ export function Dashboard() {
         >
           <StatsCard
             title="Lendo Atualmente"
-            value={stats.booksReading}
+            value={stats.reading}
             description="Em progresso"
             icon={BookOpen}
           />
@@ -106,9 +93,9 @@ export function Dashboard() {
           transition={{ duration: 0.6, delay: 0.3 }}
         >
           <StatsCard
-            title="Livros Finalizados"
-            value={stats.booksFinished}
-            description="Leituras completas"
+            title="Livros Lidos"
+            value={stats.read}
+            description="Finalizados"
             icon={CheckCircle2}
           />
         </motion.div>
@@ -119,7 +106,7 @@ export function Dashboard() {
         >
           <StatsCard
             title="Páginas Lidas"
-            value={stats.totalPagesRead}
+            value={stats.pagesRead}
             description="Total de páginas"
             icon={FileText}
           />

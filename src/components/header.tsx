@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { BookOpen, Home, Plus, Library } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SimpleThemeToggle } from '@/components/theme-toggle'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
@@ -15,33 +16,39 @@ export function Header() {
   const pathname = usePathname()
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/60">
-      <div className="container flex h-16 items-center">
-        <Link href="/" className="flex items-center space-x-2">
-          <BookOpen className="h-6 w-6" />
-          <span className="hidden font-bold sm:inline-block">BookShelf</span>
-        </Link>
+    <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-white/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/60 dark:border-gray-800/20 dark:bg-gray-950/80 dark:supports-[backdrop-filter]:bg-gray-950/60">
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center">
+          <Link href="/" className="flex items-center space-x-2">
+            <BookOpen className="h-6 w-6" />
+            <span className="hidden font-bold sm:inline-block">BookShelf</span>
+          </Link>
 
-        <nav className="flex items-center space-x-6 ml-8">
-          {navigation.map((item) => {
-            const Icon = item.icon
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  'flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary',
-                  pathname === item.href
-                    ? 'text-foreground'
-                    : 'text-muted-foreground'
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                <span className="hidden sm:inline-block">{item.name}</span>
-              </Link>
-            )
-          })}
-        </nav>
+          <nav className="flex items-center space-x-6 ml-8">
+            {navigation.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center space-x-2 text-sm font-medium transition-colors hover:text-primary',
+                    pathname === item.href
+                      ? 'text-foreground'
+                      : 'text-muted-foreground'
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="hidden sm:inline-block">{item.name}</span>
+                </Link>
+              )
+            })}
+          </nav>
+        </div>
+
+        <div className="flex items-center space-x-4">
+          <SimpleThemeToggle />
+        </div>
       </div>
     </header>
   )
