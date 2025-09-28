@@ -42,7 +42,7 @@ export const validators = {
       return 'Ano deve ser um número válido'
     }
     
-    const currentYear = new Date().getFullYear()
+    const currentYear = 2024 // Usar ano fixo para evitar problemas de hidratação
     if (numValue < 1000 || numValue > currentYear + 10) {
       return `Ano deve estar entre 1000 e ${currentYear + 10}`
     }

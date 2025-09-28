@@ -10,10 +10,10 @@ interface StatsCardProps {
 
 const cardStyle = {
   gradient: "from-blue-400 to-indigo-500",
-  bgLight: "from-white to-blue-50/30",
+  bgLight: "from-white to-blue-50/30 dark:from-gray-900 dark:to-gray-800",
   iconBg: "from-blue-400 to-indigo-500",
-  border: "border-blue-100",
-  hoverBorder: "hover:border-blue-200",
+  border: "border-blue-100 dark:border-gray-700",
+  hoverBorder: "hover:border-blue-200 dark:hover:border-gray-600",
 };
 
 export function StatsCard({
@@ -41,7 +41,7 @@ export function StatsCard({
         </div>
 
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
-          <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-black transition-colors">
+          <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-200 group-hover:text-black dark:group-hover:text-white transition-colors">
             {title}
           </CardTitle>
           <div
@@ -56,11 +56,11 @@ export function StatsCard({
         </CardHeader>
 
         <CardContent className="relative z-10">
-          <div className="text-3xl font-bold text-black group-hover:text-foreground transition-colors mb-1">
-            {typeof value === "number" ? value.toLocaleString() : value}
+          <div className="text-3xl font-bold text-black dark:text-white group-hover:text-foreground transition-colors mb-1">
+            {typeof value === "number" ? value.toLocaleString('pt-BR') : value}
           </div>
           {description && (
-            <p className="text-sm text-muted-foreground group-hover:text-gray-700 transition-colors font-medium">
+            <p className="text-sm text-muted-foreground group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors font-medium">
               {description}
             </p>
           )}

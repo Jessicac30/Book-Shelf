@@ -48,6 +48,8 @@ const statusLabels: Record<ReadingStatus, string> = {
   ABANDONADO: "Abandonado",
 };
 
+const CURRENT_YEAR = 2024; // Usar ano fixo para evitar problemas de hidratação
+
 export function BookForm({
   book,
   onSubmit,
@@ -86,7 +88,7 @@ export function BookForm({
 
     if (
       formData.year &&
-      (formData.year < 1000 || formData.year > new Date().getFullYear())
+      (formData.year < 1000 || formData.year > CURRENT_YEAR)
     ) {
       newErrors.year = "Ano deve estar entre 1000 e o ano atual";
     }
@@ -281,7 +283,7 @@ export function BookForm({
                       }`}
                       placeholder="2024"
                       min="1000"
-                      max={new Date().getFullYear()}
+                      max={CURRENT_YEAR}
                     />
                     {errors.year && (
                       <p className="text-red-500 text-sm mt-1">{errors.year}</p>
