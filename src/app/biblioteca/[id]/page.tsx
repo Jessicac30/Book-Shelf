@@ -85,13 +85,13 @@ export default function BookDetailPage() {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      QUERO_LER: "bg-blue-100 text-blue-800 border-blue-200",
-      LENDO: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      LIDO: "bg-green-100 text-green-800 border-green-200",
-      PAUSADO: "bg-orange-100 text-orange-800 border-orange-200",
-      ABANDONADO: "bg-red-100 text-red-800 border-red-200",
+      QUERO_LER: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700",
+      LENDO: "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700",
+      LIDO: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700",
+      PAUSADO: "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700",
+      ABANDONADO: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700",
     };
-    return colors[status] || "bg-gray-100 text-black border";
+    return colors[status] || "bg-gray-100 text-black border dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600";
   };
 
   const renderStars = (rating: number) => {
@@ -123,7 +123,7 @@ export default function BookDetailPage() {
     return (
       <div className="flex-1 p-4 md:p-8 pt-6">
         <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-black mb-4">
+          <h2 className="text-2xl font-bold text-foreground mb-4">
             Livro não encontrado
           </h2>
           <p className="text-muted-foreground mb-6">
@@ -155,7 +155,7 @@ export default function BookDetailPage() {
           <ArrowLeft size={18} className="mr-2" />
           Voltar
         </Button>
-        <h1 className="text-2xl font-bold text-black">Detalhes do Livro</h1>
+        <h1 className="text-2xl font-bold text-foreground">Detalhes do Livro</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -216,7 +216,7 @@ export default function BookDetailPage() {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-3xl font-bold mb-2 text-black">
+                  <CardTitle className="text-3xl font-bold mb-2 text-foreground">
                     {book.title}
                   </CardTitle>
                   <CardDescription className="text-xl text-muted-foreground flex items-center">
@@ -232,7 +232,7 @@ export default function BookDetailPage() {
                   <div className="flex items-center space-x-2">
                     <BookOpen size={18} className="text-muted-foreground" />
                     <span className="font-medium">Gênero:</span>
-                    <span className="bg-gray-100 px-2 py-1 rounded-md text-sm">
+                    <span className="bg-gray-100 px-2 py-1 rounded-md text-sm dark:bg-gray-800 dark:text-gray-200">
                       {book.genre}
                     </span>
                   </div>
@@ -302,7 +302,7 @@ export default function BookDetailPage() {
                   </div>
 
                   <div className="text-center">
-                    <span className="text-2xl font-bold text-black">
+                    <span className="text-2xl font-bold text-foreground">
                       {progressPercentage}%
                     </span>
                     <span className="text-sm text-muted-foreground ml-1">
@@ -329,7 +329,7 @@ export default function BookDetailPage() {
                 <CardTitle className="text-xl">Sinopse</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                   {book.synopsis}
                 </p>
               </CardContent>
@@ -343,7 +343,7 @@ export default function BookDetailPage() {
                 <CardTitle className="text-xl">Notas Pessoais</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap italic">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap italic">
                   {book.notes}
                 </p>
               </CardContent>

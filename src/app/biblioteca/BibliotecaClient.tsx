@@ -166,13 +166,13 @@ export default function BibliotecaClient({ initialBooks }: Props) {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      QUERO_LER: "bg-blue-100 text-blue-800",
-      LENDO: "bg-yellow-100 text-yellow-800",
-      LIDO: "bg-green-100 text-green-800",
-      PAUSADO: "bg-orange-100 text-orange-800",
-      ABANDONADO: "bg-red-100 text-red-800",
+      QUERO_LER: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+      LENDO: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+      LIDO: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+      PAUSADO: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+      ABANDONADO: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
     };
-    return colors[status] || "bg-gray-100 text-black";
+    return colors[status] || "bg-gray-100 text-black dark:bg-gray-800 dark:text-gray-200";
   };
 
   return (
@@ -337,7 +337,7 @@ export default function BibliotecaClient({ initialBooks }: Props) {
                     </p>
                   )}
                   {book.synopsis && (
-                    <p className="text-sm text-muted-foreground line-clamp-3">
+                    <p className="text-sm text-muted-foreground dark:text-gray-300 line-clamp-3">
                       {book.synopsis}
                     </p>
                   )}
