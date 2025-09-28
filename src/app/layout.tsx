@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { NotificationProvider } from "@/components/notification";
+import { BookProvider } from "@/contexts/BookContext";
 import { Header } from "@/components/header"; // <-- 1. ADICIONE A IMPORTAÇÃO AQUI
 
 const inter = Inter({ subsets: ["latin"] });
@@ -28,10 +29,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <NotificationProvider>
-            <Header /> {/* <-- 2. CHAME O COMPONENTE HEADER AQUI */}
-            {children}
-          </NotificationProvider>
+          <BookProvider>
+            <NotificationProvider>
+              <Header /> {/* <-- 2. CHAME O COMPONENTE HEADER AQUI */}
+              {children}
+            </NotificationProvider>
+          </BookProvider>
         </ThemeProvider>
       </body>
     </html>
