@@ -183,7 +183,7 @@ export default function BibliotecaClient({ initialBooks }: Props) {
       </div>
 
       {/* Filtros e Busca */}
-      <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 rounded-lg border">
+      <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="flex-1">
           <div className="relative">
             <Search
@@ -219,7 +219,7 @@ export default function BibliotecaClient({ initialBooks }: Props) {
             <Button
               variant="outline"
               onClick={clearFilters}
-              className="hover:bg-gray-100"
+              className="hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               Limpar
             </Button>
