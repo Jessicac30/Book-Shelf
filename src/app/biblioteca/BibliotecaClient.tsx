@@ -24,7 +24,7 @@ import type { Book, Genre } from "@/types/book";
 import { Edit, Trash2, Plus, Search, Filter, Eye } from "lucide-react";
 import { DefaultBookCover } from "@/components/default-book-cover";
 import { ConfirmModal } from "@/components/confirm-modal";
-import { deleteBookFromClient } from "./actions";
+import { bookService } from "@/lib/book-service";
 
 type Props = { initialBooks: Book[] };
 
@@ -38,6 +38,51 @@ export default function BibliotecaClient({ initialBooks }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showNotification } = useNotification();
+
+  // Função para recarregar os livros
+  const reloadBooks = () => {
+    if (typeof window !== 'undefined') {
+      const loadedBooks = bookService.getAllBooks();
+      setBooks(loadedBooks);
+      setFilteredBooks(loadedBooks);
+    }
+  };
+
+  // Carregar livros do localStorage na inicialização
+  useEffect(() => {
+    // Verificar se estamos no cliente (não SSR)
+    if (typeof window !== 'undefined') {
+      try {
+        const loadedBooks = bookService.getAllBooks();
+        setBooks(loadedBooks);
+        setFilteredBooks(loadedBooks);
+      } catch (error) {
+        console.error('Erro ao carregar livros:', error);
+        // Em caso de erro, manter os livros iniciais
+      }
+    }
+  }, []);
+
+  // Recarregar livros quando a página recebe foco (volta da edição)
+  useEffect(() => {
+    const handleFocus = () => {
+      reloadBooks();
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        reloadBooks();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   useEffect(() => {
     setFilteredBooks(books);
@@ -132,14 +177,18 @@ export default function BibliotecaClient({ initialBooks }: Props) {
   const confirmDelete = async () => {
     if (!bookToDelete) return;
     try {
-      await deleteBookFromClient(bookToDelete.id);
-      const next = books.filter((b) => b.id !== bookToDelete.id);
-      setBooks(next);
-      filterBooks(next, searchQuery, selectedGenre);
-      showNotification(
-        "success",
-        `Livro "${bookToDelete.title}" excluído com sucesso!`
-      );
+      const success = bookService.deleteBook(bookToDelete.id);
+      if (success) {
+        const updatedBooks = bookService.getAllBooks();
+        setBooks(updatedBooks);
+        filterBooks(updatedBooks, searchQuery, selectedGenre);
+        showNotification(
+          "success",
+          `Livro "${bookToDelete.title}" excluído com sucesso!`
+        );
+      } else {
+        showNotification("error", "Livro não encontrado.");
+      }
     } catch {
       showNotification("error", "Erro ao excluir o livro.");
     } finally {
@@ -179,7 +228,28 @@ export default function BibliotecaClient({ initialBooks }: Props) {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Biblioteca</h2>
-        {/* O BOTÃO DUPLICADO FOI REMOVIDO DAQUI */}
+        <div className="flex gap-2">
+          <Button
+            onClick={reloadBooks}
+            variant="outline"
+            className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
+          >
+            🔄 Atualizar
+          </Button>
+          <Button
+            onClick={() => {
+              if (confirm('Isso vai resetar todos os livros para os dados iniciais. Confirmar?')) {
+                bookService.resetToMockData();
+                reloadBooks();
+                showNotification('success', 'Biblioteca resetada para os dados iniciais!');
+              }
+            }}
+            variant="outline"
+            className="hover:bg-orange-50 hover:border-orange-300 hover:text-orange-700"
+          >
+            🔧 Reset
+          </Button>
+        </div>
       </div>
 
       {/* Filtros e Busca */}
@@ -272,21 +342,32 @@ export default function BibliotecaClient({ initialBooks }: Props) {
                     </CardDescription>
                   </div>
                   <div className="w-16 h-20 rounded overflow-hidden flex-shrink-0 group-hover:shadow-lg transition-shadow duration-300">
-                    {book.cover ? (
-                      <img
-                        src={book.cover}
-                        alt={`Capa de ${book.title}`}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 cursor-pointer"
-                        onClick={() => handleViewDetails(book.id)}
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                          e.currentTarget.nextElementSibling?.classList.remove(
-                            "hidden"
-                          );
-                        }}
-                      />
-                    ) : null}
-                    <div className={book.cover ? "hidden" : ""}>
+                    {book.cover && book.cover.trim() !== '' ? (
+                      <>
+                        <img
+                          src={book.cover}
+                          alt={`Capa de ${book.title}`}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 cursor-pointer"
+                          onClick={() => handleViewDetails(book.id)}
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            const fallbackDiv = e.currentTarget.nextElementSibling as HTMLElement;
+                            if (fallbackDiv) {
+                              fallbackDiv.classList.remove("hidden");
+                            }
+                          }}
+                        />
+                        <div className="hidden">
+                          <DefaultBookCover
+                            title={book.title}
+                            author={book.author}
+                            genre={book.genre}
+                            className="w-full h-full rounded text-xs group-hover:scale-110 transition-transform duration-300 cursor-pointer"
+                            onClick={() => handleViewDetails(book.id)}
+                          />
+                        </div>
+                      </>
+                    ) : (
                       <DefaultBookCover
                         title={book.title}
                         author={book.author}
@@ -294,7 +375,7 @@ export default function BibliotecaClient({ initialBooks }: Props) {
                         className="w-full h-full rounded text-xs group-hover:scale-110 transition-transform duration-300 cursor-pointer"
                         onClick={() => handleViewDetails(book.id)}
                       />
-                    </div>
+                    )}
                   </div>
                 </div>
               </CardHeader>

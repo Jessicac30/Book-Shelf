@@ -1,11 +1,12 @@
 // src/components/dashboard/dashboard.tsx
 "use client";
 
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Book, BookOpen, CheckCircle2, FileText, Plus } from "lucide-react";
 import { StatsCard } from "./stats-card";
-import { useBooks, useBookStats } from "@/contexts/BookContext";
+import { bookService } from "@/lib/book-service";
+import type { Book as BookType } from "@/types/book";
 import {
   Card,
   CardContent,
@@ -17,8 +18,44 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export function Dashboard() {
-  const { books } = useBooks();
-  const stats = useBookStats();
+  const [books, setBooks] = useState<BookType[]>([]);
+
+  // Carregar livros do bookService
+  const loadBooks = () => {
+    if (typeof window !== 'undefined') {
+      const loadedBooks = bookService.getAllBooks();
+      setBooks(loadedBooks);
+    }
+  };
+
+  useEffect(() => {
+    loadBooks();
+  }, []);
+
+  // Recarregar quando a página recebe foco
+  useEffect(() => {
+    const handleFocus = () => {
+      loadBooks();
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadBooks();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  const stats = useMemo(() => {
+    return bookService.getStats();
+  }, [books]);
 
   const recentBooks = useMemo(() => {
     return books
@@ -30,6 +67,13 @@ export function Dashboard() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        <Button
+          onClick={loadBooks}
+          variant="outline"
+          className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
+        >
+          🔄 Atualizar
+        </Button>
       </div>
 
       <motion.div

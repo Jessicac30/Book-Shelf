@@ -10,9 +10,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useBooks } from "@/contexts/BookContext";
 import { useNotification } from "@/components/notification";
 import { Book } from "@/types/book";
+import { bookService } from "@/lib/book-service";
 import {
   ArrowLeft,
   Edit,
@@ -32,15 +32,39 @@ export default function BookDetailPage() {
   const router = useRouter();
   const params = useParams();
   const { showNotification } = useNotification();
-  const { getBookById, deleteBook } = useBooks();
 
-  useEffect(() => {
+  const loadBook = () => {
     if (params.id) {
-      const foundBook = getBookById(params.id as string);
+      const foundBook = bookService.getBookById(params.id as string);
       setBook(foundBook || null);
       setLoading(false);
     }
-  }, [params.id, getBookById]);
+  };
+
+  useEffect(() => {
+    loadBook();
+  }, [params.id]);
+
+  // Recarregar quando a página recebe foco
+  useEffect(() => {
+    const handleFocus = () => {
+      loadBook();
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadBook();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [params.id]);
 
   const handleBack = () => {
     router.push("/biblioteca");

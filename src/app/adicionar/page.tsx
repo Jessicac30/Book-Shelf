@@ -1,16 +1,14 @@
 "use client";
 
-import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { BookForm } from "@/components/book-form";
 import { useNotification } from "@/components/notification";
 import type { Book } from "@/types/book";
-import { createBookFromClient } from "@/app/biblioteca/actions";
+import { bookService } from "@/lib/book-service";
 
 export default function AdicionarPage() {
   const router = useRouter();
   const { showNotification } = useNotification();
-  const [pending, start] = useTransition();
 
   const handleSubmit = (data: Omit<Book, "id">) => {
     if (!data.title || !data.author || !data.genre) {
@@ -20,15 +18,13 @@ export default function AdicionarPage() {
       );
       return;
     }
-    start(async () => {
-      try {
-        await createBookFromClient(data); // action só revalida
-        showNotification("success", `Livro "${data.title}" adicionado!`);
-        router.push("/biblioteca"); // navega para a lista
-      } catch (e: any) {
-        showNotification("error", e?.message ?? "Erro ao adicionar.");
-      }
-    });
+    try {
+      const newBook = bookService.addBook(data);
+      showNotification("success", `Livro "${data.title}" adicionado!`);
+      router.push("/biblioteca");
+    } catch (e: any) {
+      showNotification("error", e?.message ?? "Erro ao adicionar.");
+    }
   };
 
   const handleCancel = () => router.push("/biblioteca");

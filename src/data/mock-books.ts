@@ -10,7 +10,7 @@ export const mockBooks: Book[] = [
     pages: 208,
     currentPage: 208,
     status: 'LIDO',
-    cover: 'https://m.media-amazon.com/images/I/51rF8YXZPPL._SY445_SX342_.jpg',
+    cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=300&fit=crop',
     rating: 5,
     synopsis: 'Romance narrado em primeira pessoa por Bento Santiago, que relata sua suspeita de que sua esposa Capitu o traiu com seu melhor amigo, Escobar. A obra é considerada uma das maiores da literatura brasileira.',
     notes: 'Um clássico imperdível da literatura brasileira.'
@@ -24,7 +24,7 @@ export const mockBooks: Book[] = [
     pages: 271,
     currentPage: 150,
     status: 'LENDO',
-    cover: 'https://m.media-amazon.com/images/I/41V5I3cGaQL._SY445_SX342_.jpg',
+    cover: 'https://images.unsplash.com/photo-1581905764498-f1b60bae941a?w=200&h=300&fit=crop',
     rating: 4,
     synopsis: 'Case era o mais esperto ladrão de dados do Sprawl, até que cruzou os patrões errados. Agora tem uma última chance de redenção em um trabalho impossível no ciberespaço.',
     notes: 'Pioneiro do cyberpunk, muito influente.'
@@ -37,7 +37,7 @@ export const mockBooks: Book[] = [
     year: 1967,
     pages: 417,
     status: 'QUERO_LER',
-    cover: 'https://m.media-amazon.com/images/I/51P1YqyHX-L._SY445_SX342_.jpg',
+    cover: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=300&fit=crop',
     rating: 0,
     synopsis: 'A história da família Buendía ao longo de sete gerações na cidade fictícia de Macondo, uma obra-prima do realismo mágico.',
     notes: 'Recomendado por vários amigos.'
@@ -51,7 +51,7 @@ export const mockBooks: Book[] = [
     pages: 662,
     currentPage: 662,
     status: 'LIDO',
-    cover: 'https://m.media-amazon.com/images/I/51+FH+PfTXL._SY445_SX342_.jpg',
+    cover: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=200&h=300&fit=crop',
     rating: 5,
     synopsis: 'Kvothe conta sua própria história - como um jovem prodígio se tornou o mais notório mago, assassino, músico e herói de sua época.',
     notes: 'Fantasia épica incrível, aguardando ansiosamente o terceiro livro.'
