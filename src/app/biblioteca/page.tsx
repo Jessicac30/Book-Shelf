@@ -1,11 +1,10 @@
 // src/app/biblioteca/page.tsx
 import type { Book } from "@/types/book";
 import BibliotecaClient from "./BibliotecaClient";
-
-const BASE = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+import { db } from "@/data/store";
 
 export default async function BibliotecaPage() {
-  const res = await fetch(`${BASE}/api/books`, { cache: "no-store" });
-  const books: Book[] = res.ok ? await res.json() : [];
+  // Usar diretamente o store em vez de fetch interno
+  const books: Book[] = db.books;
   return <BibliotecaClient initialBooks={books} />;
 }

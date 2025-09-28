@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { Book } from "@/types/book";
 
-const BASE = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3001";
+const BASE = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3007";
 
 export async function createBookFromClient(data: Omit<Book, "id">) {
   const res = await fetch(`${BASE}/api/books`, {
