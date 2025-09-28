@@ -228,28 +228,6 @@ export default function BibliotecaClient({ initialBooks }: Props) {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Biblioteca</h2>
-        <div className="flex gap-2">
-          <Button
-            onClick={reloadBooks}
-            variant="outline"
-            className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
-          >
-            🔄 Atualizar
-          </Button>
-          <Button
-            onClick={() => {
-              if (confirm('Isso vai resetar todos os livros para os dados iniciais. Confirmar?')) {
-                bookService.resetToMockData();
-                reloadBooks();
-                showNotification('success', 'Biblioteca resetada para os dados iniciais!');
-              }
-            }}
-            variant="outline"
-            className="hover:bg-orange-50 hover:border-orange-300 hover:text-orange-700"
-          >
-            🔧 Reset
-          </Button>
-        </div>
       </div>
 
       {/* Filtros e Busca */}
