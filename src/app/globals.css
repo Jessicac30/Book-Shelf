@@ -1,3 +1,5 @@
+/* Localização: app/globals.css */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,195 +12,42 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --background: 220 20% 10%; /* Cinza muito escuro (não preto) */
+    --foreground: 210 40% 98%; /* Texto claro */
+    --card: 215 15% 15%; /* Cinza um pouco mais claro para cards */
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 215 15% 15%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
+    --primary: 210 40% 98%; /* Ações primárias claras */
+    --primary-foreground: 220 20% 10%;
+    --secondary: 210 10% 25%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --muted: 210 10% 25%;
+    --muted-foreground: 210 10% 65%;
+    --accent: 210 10% 25%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
-  }
-
-  /* Base styles for accessibility and performance */
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-
-  /* Focus styles for accessibility */
-  .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
-  }
-
-  /* Skip link for screen readers */
-  .skip-link {
-    @apply absolute -top-10 left-6 z-50 bg-background px-4 py-2 rounded-md border;
-    @apply focus:top-6 transition-all duration-200;
-  }
-
-  /* High contrast mode support */
-  @media (prefers-contrast: high) {
-    .card {
-      @apply border-2;
-    }
-    
-    .button {
-      @apply border-2;
-    }
-  }
-
-  /* Reduce motion for accessibility */
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
-
-  /* Improved text rendering */
-  h1, h2, h3, h4, h5, h6 {
-    text-rendering: optimizeLegibility;
-  }
-
-  /* Line clamping utility */
-  .line-clamp-1 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 1;
-  }
-
-  .line-clamp-2 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-
-  .line-clamp-3 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-  }
-
-  /* Custom scrollbar for webkit browsers */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-gray-100 rounded-md;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 rounded-md hover:bg-gray-400;
-  }
-
-  /* Loading skeleton animation */
-  .skeleton {
-    @apply bg-gray-200 animate-pulse rounded;
-  }
-
-  /* Improved button states */
-  .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90;
-    @apply focus-ring transition-colors duration-200;
-    @apply disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
-    @apply focus-ring transition-colors duration-200;
-    @apply disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  /* Form styles */
-  .form-input {
-    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2;
-    @apply text-sm ring-offset-background file:border-0 file:bg-transparent;
-    @apply file:text-sm file:font-medium placeholder:text-muted-foreground;
-    @apply focus-ring disabled:cursor-not-allowed disabled:opacity-50;
-  }
-
-  /* Card component improvements */
-  .card {
-    @apply bg-card text-card-foreground rounded-lg border shadow-sm;
-  }
-
-  .card-header {
-    @apply flex flex-col space-y-1.5 p-6;
-  }
-
-  .card-content {
-    @apply p-6 pt-0;
-  }
-
-  /* Mobile-first responsive utilities */
-  @media (max-width: 640px) {
-    .mobile-hidden {
-      @apply hidden;
-    }
-    
-    .mobile-grid {
-      @apply grid-cols-1;
-    }
-  }
-
-  @media (min-width: 641px) {
-    .desktop-grid {
-      @apply grid-cols-2 lg:grid-cols-3;
-    }
-  }
-
-  /* Print styles */
-  @media print {
-    .print-hidden {
-      @apply hidden;
-    }
-    
-    body {
-      @apply text-black bg-white;
-    }
-    
-    .card {
-      @apply border border-gray-300;
-    }
+    --border: 210 10% 25%;
+    --input: 210 10% 25%;
+    --ring: 210 10% 65%;
   }
 }
 

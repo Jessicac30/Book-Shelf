@@ -1,27 +1,39 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import { Providers } from '@/components/providers'
+// Localização: app/layout.tsx
 
-const inter = Inter({ subsets: ['latin'] })
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { NotificationProvider } from "@/components/notification";
+import { Header } from "@/components/header"; // <-- 1. ADICIONE A IMPORTAÇÃO AQUI
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'BookShelf - Sua Biblioteca Pessoal',
-  description: 'Gerencie sua biblioteca pessoal e acompanhe seu progresso de leitura',
-}
+  title: "BookShelf", // Mudei para um título mais legal :)
+  description: "Sua estante de livros digital",
+};
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <Providers>
-          {children}
-        </Providers>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <NotificationProvider>
+            <Header /> {/* <-- 2. CHAME O COMPONENTE HEADER AQUI */}
+            {children}
+          </NotificationProvider>
+        </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

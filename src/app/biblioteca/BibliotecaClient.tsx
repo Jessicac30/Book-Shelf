@@ -19,8 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// REMOVIDO: useBooks (não vamos mais usar contexto para dados iniciais)
-// import { useBooks } from '@/contexts/BookContext'
 import { useNotification } from "@/components/notification";
 import type { Book, Genre } from "@/types/book";
 import { Edit, Trash2, Plus, Search, Filter, Eye } from "lucide-react";
@@ -31,7 +29,6 @@ import { deleteBookFromClient } from "./actions";
 type Props = { initialBooks: Book[] };
 
 export default function BibliotecaClient({ initialBooks }: Props) {
-  // >>> substitui o contexto por estado local, inicializado com dados do servidor
   const [books, setBooks] = useState<Book[]>(initialBooks);
   const [filteredBooks, setFilteredBooks] = useState<Book[]>(initialBooks);
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
@@ -79,7 +76,6 @@ export default function BibliotecaClient({ initialBooks }: Props) {
     genre: Genre | "all"
   ) => {
     let filtered = bookList;
-
     if (search) {
       const s = search.toLowerCase();
       filtered = filtered.filter(
@@ -88,11 +84,9 @@ export default function BibliotecaClient({ initialBooks }: Props) {
           book.author.toLowerCase().includes(s)
       );
     }
-
     if (genre !== "all") {
       filtered = filtered.filter((book) => book.genre === genre);
     }
-
     setFilteredBooks(filtered);
   };
 
@@ -135,7 +129,6 @@ export default function BibliotecaClient({ initialBooks }: Props) {
     setBookToDelete(book);
   };
 
-  // >>> AQUI trocamos o delete do contexto pela Server Action + atualização local
   const confirmDelete = async () => {
     if (!bookToDelete) return;
     try {
@@ -179,43 +172,14 @@ export default function BibliotecaClient({ initialBooks }: Props) {
       PAUSADO: "bg-orange-100 text-orange-800",
       ABANDONADO: "bg-red-100 text-red-800",
     };
-    return colors[status] || "bg-gray-100 text-gray-800";
+    return colors[status] || "bg-gray-100 text-black";
   };
 
-  // ====== TEU JSX ORIGINAL (idêntico) ======
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Biblioteca</h2>
-        <button
-          onClick={handleAddNew}
-          className="
-            group relative inline-flex items-center px-6 py-3 text-white font-semibold rounded-lg
-            bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500
-            hover:from-blue-600 hover:via-purple-600 hover:to-pink-600
-            transform hover:scale-105 hover:shadow-xl
-            transition-all duration-300 ease-in-out
-            before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r
-            before:from-blue-400 before:via-purple-400 before:to-pink-400
-            before:opacity-0 before:transition-opacity before:duration-300
-            hover:before:opacity-20
-            focus:outline-none focus:ring-4 focus:ring-purple-500/50
-            active:scale-95
-            overflow-hidden
-          "
-        >
-          <Plus size={18} className="mr-2 drop-shadow-sm" />
-          <span className="drop-shadow-sm">Adicionar Livro</span>
-          <div
-            className="
-              absolute inset-0 rounded-lg opacity-0
-              bg-gradient-to-r from-transparent via-white/20 to-transparent
-              transform -skew-x-12 -translate-x-full
-              group-hover:translate-x-full group-hover:opacity-100
-              transition-all duration-700 ease-in-out
-            "
-          />
-        </button>
+        {/* O BOTÃO DUPLICADO FOI REMOVIDO DAQUI */}
       </div>
 
       {/* Filtros e Busca */}
