@@ -41,7 +41,7 @@ export function StatsCard({
         </div>
 
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
-          <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-200 group-hover:text-black dark:group-hover:text-white transition-colors">
+          <CardTitle className="text-sm font-semibold text-foreground/70 group-hover:text-foreground transition-colors">
             {title}
           </CardTitle>
           <div
