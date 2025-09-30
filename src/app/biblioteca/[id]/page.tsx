@@ -82,7 +82,7 @@ export default function BookDetailPage() {
 
   const confirmDelete = () => {
     if (book) {
-      const success = deleteBook(book.id);
+      const success = bookService.deleteBook(book.id);
       if (success) {
         showNotification(
           "success",

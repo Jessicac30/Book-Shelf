@@ -8,6 +8,11 @@ class BookService {
   // Obter todos os livros
   getAllBooks(): Book[] {
     try {
+      // Verificar se estamos no cliente (browser)
+      if (typeof window === 'undefined') {
+        return mockBooks
+      }
+      
       const savedBooks = localStorage.getItem(this.STORAGE_KEY)
       return savedBooks ? JSON.parse(savedBooks) : mockBooks
     } catch (error) {
@@ -19,6 +24,11 @@ class BookService {
   // Salvar livros no localStorage
   private saveBooks(books: Book[]): void {
     try {
+      // Verificar se estamos no cliente (browser)
+      if (typeof window === 'undefined') {
+        return
+      }
+      
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(books))
     } catch (error) {
       console.error('Erro ao salvar livros no localStorage:', error)

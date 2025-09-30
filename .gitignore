@@ -71,3 +71,12 @@ temp/
 
 # Claude Code
 .claude/
+/generated/prisma
+
+# Prisma / Database
+prisma/*.db
+prisma/*.db-journal
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
