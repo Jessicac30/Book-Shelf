@@ -1,26 +1,40 @@
+// src/app/api/books/route.ts
+
 import { NextResponse } from "next/server";
-import { db } from "@/data/store";
+// Importando as FUNÇÕES do seu store
+import { listBooks, createBook } from "@/data/store";
 
 export async function GET() {
-  return NextResponse.json(db.books);
+  try {
+    const books = await listBooks();
+    return NextResponse.json(books);
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Erro interno do servidor ao listar livros." },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(req: Request) {
-  const body = await req.json().catch(() => null);
-  if (!body)
-    return NextResponse.json({ error: "invalid body" }, { status: 400 });
+  try {
+    const body = await req.json();
 
-  const { title, author, genre, ...rest } = body;
-  if (!title || !author || !genre) {
+    // A validação de campos obrigatórios pode ficar aqui ou dentro da função createBook
+    const { title, author, genre } = body;
+    if (!title || !author || !genre) {
+      return NextResponse.json(
+        { message: "Título, autor e gênero são obrigatórios." },
+        { status: 400 }
+      );
+    }
+
+    const newBook = await createBook(body);
+    return NextResponse.json(newBook, { status: 201 });
+  } catch (error) {
     return NextResponse.json(
-      { error: "title, author, genre obrigatórios" },
-      { status: 400 }
+      { message: "Erro interno do servidor ao criar livro." },
+      { status: 500 }
     );
   }
-
-  const id = (global as any).crypto?.randomUUID?.() ?? String(Date.now());
-  const newBook = { id, title, author, genre, ...rest };
-  db.books.push(newBook);
-
-  return NextResponse.json(newBook, { status: 201 });
 }
