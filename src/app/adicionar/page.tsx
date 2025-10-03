@@ -1,41 +1,32 @@
-"use client";
-
-import { useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
+import { createBook } from "../biblioteca/actions";
 import { BookForm } from "@/components/book-form";
-import { useNotification } from "@/components/notification";
-import type { Book } from "@/types/book";
-import { createBookFromClient } from "@/app/biblioteca/actions";
 
 export default function AdicionarPage() {
-  const router = useRouter();
-  const { showNotification } = useNotification();
-  const [pending, start] = useTransition();
-
-  const handleSubmit = (data: Omit<Book, "id">) => {
-    if (!data.title || !data.author || !data.genre) {
-      showNotification(
-        "error",
-        "Preencha Título, Autor e selecione um Gênero."
-      );
-      return;
-    }
-    start(async () => {
-      try {
-        await createBookFromClient(data); // action só revalida
-        showNotification("success", `Livro "${data.title}" adicionado!`);
-        router.push("/biblioteca"); // navega para a lista
-      } catch (e: any) {
-        showNotification("error", e?.message ?? "Erro ao adicionar.");
-      }
+  async function action(formData: FormData) {
+    "use server";
+    await createBook({
+      title: String(formData.get("title") || ""),
+      author: String(formData.get("author") || ""),
+      genre: (formData.get("genre") as any) || undefined,
+      year: formData.get("year") ? Number(formData.get("year")) : undefined,
+      pages: formData.get("pages") ? Number(formData.get("pages")) : undefined,
+      currentPage: formData.get("currentPage")
+        ? Number(formData.get("currentPage"))
+        : 0,
+      status: (formData.get("status") as any) || "QUERO_LER",
+      isbn: formData.get("isbn")?.toString() || "",
+      cover: formData.get("cover")?.toString() || "",
+      rating: formData.get("rating") ? Number(formData.get("rating")) : 0,
+      synopsis: formData.get("synopsis")?.toString() || "",
+      notes: formData.get("notes")?.toString() || "",
     });
-  };
-
-  const handleCancel = () => router.push("/biblioteca");
+    redirect("/biblioteca");
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <BookForm onSubmit={handleSubmit} onCancel={handleCancel} />
+      <BookForm onSubmitAction={action} cancelHref="/biblioteca" />
     </div>
   );
 }

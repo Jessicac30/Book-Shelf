@@ -1,80 +1,48 @@
-'use client'
+import { redirect } from "next/navigation";
+import { getBook } from "@/data/store";
+import { updateBook } from "../../biblioteca/actions"; // <- actions dentro de /biblioteca
+import { BookForm } from "@/components/book-form";
 
-import { useRouter, useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { BookForm } from '@/components/book-form'
-import { bookService } from '@/lib/book-service'
-import { useNotification } from '@/components/notification'
-import { Book } from '@/types/book'
+export default async function EditBookPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const book = await getBook(params.id);
+  if (!book) return <div className="p-6">Livro não encontrado.</div>;
 
-export default function EditBookPage() {
-  const router = useRouter()
-  const params = useParams()
-  const { showNotification } = useNotification()
-  const [book, setBook] = useState<Book | null>(null)
-  const [loading, setLoading] = useState(true)
+  async function action(formData: FormData) {
+    "use server";
+    await updateBook(params.id, {
+      title: formData.get("title")?.toString() || undefined,
+      author: formData.get("author")?.toString() || undefined,
+      genre: (formData.get("genre") as any) || undefined,
+      year: formData.get("year") ? Number(formData.get("year")) : undefined,
+      pages: formData.get("pages") ? Number(formData.get("pages")) : undefined,
+      currentPage: formData.get("currentPage")
+        ? Number(formData.get("currentPage"))
+        : undefined,
+      status: (formData.get("status") as any) || undefined,
+      isbn: formData.get("isbn")?.toString() || undefined,
+      cover: formData.get("cover")?.toString() || undefined,
+      rating: formData.get("rating")
+        ? Number(formData.get("rating"))
+        : undefined,
+      synopsis: formData.get("synopsis")?.toString() || undefined,
+      notes: formData.get("notes")?.toString() || undefined,
+    });
 
-  useEffect(() => {
-    if (params.id) {
-      const foundBook = bookService.getBookById(params.id as string)
-      if (foundBook) {
-        setBook(foundBook)
-      } else {
-        showNotification('error', 'Livro não encontrado')
-        router.push('/biblioteca')
-      }
-      setLoading(false)
-    }
-  }, [params.id, router, showNotification])
-
-  const handleSubmit = (bookData: Omit<Book, 'id'>) => {
-    if (!params.id) return
-    
-    try {
-      const updatedBook = bookService.updateBook(params.id as string, bookData)
-      if (updatedBook) {
-        showNotification('success', `Livro "${updatedBook.title}" atualizado com sucesso!`)
-        router.push('/biblioteca')
-      } else {
-        showNotification('error', 'Erro ao atualizar o livro. Livro não encontrado.')
-      }
-    } catch (error) {
-      showNotification('error', 'Erro ao atualizar o livro. Tente novamente.')
-    }
-  }
-
-  const handleCancel = () => {
-    router.push('/biblioteca')
-  }
-
-  if (loading) {
-    return (
-      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-        <div className="flex justify-center items-center min-h-96">
-          <div className="text-lg">Carregando...</div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!book) {
-    return (
-      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-        <div className="flex justify-center items-center min-h-96">
-          <div className="text-lg text-red-600">Livro não encontrado</div>
-        </div>
-      </div>
-    )
+    redirect("/biblioteca"); // volta após salvar
   }
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <BookForm
         book={book}
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        isEditing={true}
+        onSubmitAction={action}
+        cancelHref="/biblioteca"
+        isEditing
       />
     </div>
-  )
+  );
 }

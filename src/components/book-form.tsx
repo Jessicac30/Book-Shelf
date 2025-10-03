@@ -1,152 +1,155 @@
-'use client'
+"use client";
 
-import { useState, useRef } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Book, Genre, ReadingStatus } from '@/types/book'
-import { Upload, X } from 'lucide-react'
-import { DefaultBookCover } from './default-book-cover'
+import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Book, Genre, ReadingStatus } from "@/types/book";
+import { Upload, X } from "lucide-react";
+import { DefaultBookCover } from "./default-book-cover";
 
 interface BookFormProps {
-  book?: Book
-  onSubmit: (book: Omit<Book, 'id'>) => void
-  onCancel: () => void
-  isEditing?: boolean
+  book?: Book;
+  onSubmit?: (book: Omit<Book, "id">) => void;
+  onSubmitAction?: (fd: FormData) => Promise<void>;
+  cancelHref?: string;
+  isEditing?: boolean;
 }
 
 const genres: Genre[] = [
-  'Literatura Brasileira',
-  'Ficção Científica',
-  'Realismo Mágico',
-  'Ficção',
-  'Fantasia',
-  'Romance',
-  'Biografia',
-  'História',
-  'Autoajuda',
-  'Tecnologia',
-  'Programação',
-  'Negócios',
-  'Psicologia',
-  'Filosofia',
-  'Poesia'
-]
+  "Literatura Brasileira",
+  "Ficção Científica",
+  "Realismo Mágico",
+  "Ficção",
+  "Fantasia",
+  "Romance",
+  "Biografia",
+  "História",
+  "Autoajuda",
+  "Tecnologia",
+  "Programação",
+  "Negócios",
+  "Psicologia",
+  "Filosofia",
+  "Poesia",
+];
 
-const statuses: ReadingStatus[] = ['QUERO_LER', 'LENDO', 'LIDO', 'PAUSADO', 'ABANDONADO']
+const statuses: ReadingStatus[] = [
+  "QUERO_LER",
+  "LENDO",
+  "LIDO",
+  "PAUSADO",
+  "ABANDONADO",
+];
 
 const statusLabels: Record<ReadingStatus, string> = {
-  QUERO_LER: 'Quero Ler',
-  LENDO: 'Lendo',
-  LIDO: 'Lido',
-  PAUSADO: 'Pausado',
-  ABANDONADO: 'Abandonado'
-}
+  QUERO_LER: "Quero Ler",
+  LENDO: "Lendo",
+  LIDO: "Lido",
+  PAUSADO: "Pausado",
+  ABANDONADO: "Abandonado",
+};
 
-export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFormProps) {
-  const [formData, setFormData] = useState<Omit<Book, 'id'>>({
-    title: book?.title || '',
-    author: book?.author || '',
+export function BookForm({
+  book,
+  onSubmit,
+  onSubmitAction,
+  cancelHref = "/biblioteca",
+  isEditing = false,
+}: BookFormProps) {
+  const router = useRouter();
+
+  const [formData, setFormData] = useState<Omit<Book, "id">>({
+    title: book?.title || "",
+    author: book?.author || "",
     genre: book?.genre,
     year: book?.year,
     pages: book?.pages,
-    currentPage: book?.currentPage || 0,
-    status: book?.status || 'QUERO_LER',
-    isbn: book?.isbn || '',
-    cover: book?.cover || '',
-    rating: book?.rating || 0,
-    synopsis: book?.synopsis || '',
-    notes: book?.notes || ''
-  })
+    currentPage: book?.currentPage ?? 0,
+    status: book?.status ?? "QUERO_LER",
+    isbn: book?.isbn || "",
+    cover: book?.cover || "",
+    rating: book?.rating ?? 0,
+    synopsis: book?.synopsis || "",
+    notes: book?.notes || "",
+  });
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [imagePreview, setImagePreview] = useState<string>(book?.cover || '')
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [imagePreview, setImagePreview] = useState<string>(book?.cover || "");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {}
+    const e: Record<string, string> = {};
+    if (!formData.title.trim()) e.title = "Título é obrigatório";
+    if (!formData.author.trim()) e.author = "Autor é obrigatório";
+    if (
+      formData.year &&
+      (formData.year < 1000 || formData.year > new Date().getFullYear())
+    )
+      e.year = "Ano inválido";
+    if (formData.pages && formData.pages <= 0) e.pages = "Páginas deve ser > 0";
+    if (
+      formData.currentPage &&
+      formData.pages &&
+      formData.currentPage > formData.pages
+    )
+      e.currentPage = "Página atual > total";
+    if (formData.rating && (formData.rating < 0 || formData.rating > 5))
+      e.rating = "Avaliação deve estar entre 0 e 5";
+    if (formData.isbn && !/^[\d-x]+$/i.test(formData.isbn.replace(/\s/g, "")))
+      e.isbn = "ISBN inválido";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
-    if (!formData.title.trim()) {
-      newErrors.title = 'Título é obrigatório'
-    }
-
-    if (!formData.author.trim()) {
-      newErrors.author = 'Autor é obrigatório'
-    }
-
-    if (formData.year && (formData.year < 1000 || formData.year > new Date().getFullYear())) {
-      newErrors.year = 'Ano deve estar entre 1000 e o ano atual'
-    }
-
-    if (formData.pages && formData.pages <= 0) {
-      newErrors.pages = 'Número de páginas deve ser maior que 0'
-    }
-
-    if (formData.currentPage && formData.pages && formData.currentPage > formData.pages) {
-      newErrors.currentPage = 'Página atual não pode ser maior que o total de páginas'
-    }
-
-    if (formData.rating && (formData.rating < 0 || formData.rating > 5)) {
-      newErrors.rating = 'Avaliação deve estar entre 0 e 5'
-    }
-
-    if (formData.isbn && !/^[\d-x]+$/i.test(formData.isbn.replace(/\s/g, ''))) {
-      newErrors.isbn = 'ISBN deve conter apenas números, hífens e X'
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (validateForm()) {
-      onSubmit({ ...formData, cover: imagePreview })
-    }
-  }
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (onSubmitAction) return;
+    e.preventDefault();
+    if (validateForm() && onSubmit)
+      onSubmit({ ...formData, cover: imagePreview });
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const result = e.target?.result as string
-        setImagePreview(result)
-        setFormData(prev => ({ ...prev, cover: result }))
-      }
-      reader.readAsDataURL(file)
-    }
-  }
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      setImagePreview(result);
+      setFormData((p) => ({ ...p, cover: result }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const removeImage = () => {
-    setImagePreview('')
-    setFormData(prev => ({ ...prev, cover: '' }))
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-  }
+    setImagePreview("");
+    setFormData((p) => ({ ...p, cover: "" }));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const getProgressPercentage = (): number => {
-    const requiredFields = [formData.title, formData.author].filter(Boolean).length
-    const optionalFields = [
+    const required = [formData.title, formData.author].filter(Boolean).length;
+    const optional = [
       formData.genre,
       formData.year,
       formData.pages,
       formData.isbn,
       imagePreview,
-      formData.synopsis
-    ].filter(Boolean).length
+      formData.synopsis,
+    ].filter(Boolean).length;
+    const total = 8;
+    return Math.round(((required + optional) / total) * 100);
+  };
 
-    const total = 8
-    const filled = requiredFields + optionalFields
-    return Math.round((filled / total) * 100)
-  }
+  const handleCancel = () => router.push(cancelHref);
 
   return (
     <div className="max-w-4xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle>{isEditing ? 'Editar Livro' : 'Adicionar Novo Livro'}</CardTitle>
-
+          <CardTitle>
+            {isEditing ? "Editar Livro" : "Adicionar Novo Livro"}
+          </CardTitle>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
@@ -159,7 +162,11 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form
+            action={onSubmitAction}
+            onSubmit={handleSubmit}
+            className="space-y-6"
+          >
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -168,16 +175,21 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
                       Título *
                     </label>
                     <input
+                      name="title"
                       type="text"
                       value={formData.title}
-                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((p) => ({ ...p, title: e.target.value }))
+                      }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.title ? 'border-red-500' : 'border-gray-300'
+                        errors.title ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="Digite o título do livro"
                     />
                     {errors.title && (
-                      <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.title}
+                      </p>
                     )}
                   </div>
 
@@ -186,16 +198,21 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
                       Autor *
                     </label>
                     <input
+                      name="author"
                       type="text"
                       value={formData.author}
-                      onChange={(e) => setFormData(prev => ({ ...prev, author: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((p) => ({ ...p, author: e.target.value }))
+                      }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.author ? 'border-red-500' : 'border-gray-300'
+                        errors.author ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="Digite o nome do autor"
                     />
                     {errors.author && (
-                      <p className="text-red-500 text-sm mt-1">{errors.author}</p>
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.author}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -206,13 +223,21 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
                       Gênero
                     </label>
                     <select
-                      value={formData.genre || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, genre: e.target.value as Genre || undefined }))}
+                      name="genre"
+                      value={formData.genre || ""}
+                      onChange={(e) =>
+                        setFormData((p) => ({
+                          ...p,
+                          genre: (e.target.value as Genre) || undefined,
+                        }))
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Selecione um gênero</option>
-                      {genres.map(genre => (
-                        <option key={genre} value={genre}>{genre}</option>
+                      {genres.map((g) => (
+                        <option key={g} value={g}>
+                          {g}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -222,14 +247,22 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
                       Ano
                     </label>
                     <input
+                      name="year"
                       type="number"
-                      value={formData.year || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, year: e.target.value ? parseInt(e.target.value) : undefined }))}
+                      value={formData.year ?? ""}
+                      onChange={(e) =>
+                        setFormData((p) => ({
+                          ...p,
+                          year: e.target.value
+                            ? parseInt(e.target.value)
+                            : undefined,
+                        }))
+                      }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.year ? 'border-red-500' : 'border-gray-300'
+                        errors.year ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="2024"
-                      min="1000"
+                      min={1000}
                       max={new Date().getFullYear()}
                     />
                     {errors.year && (
@@ -242,12 +275,20 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
                       Status
                     </label>
                     <select
+                      name="status"
                       value={formData.status}
-                      onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as ReadingStatus }))}
+                      onChange={(e) =>
+                        setFormData((p) => ({
+                          ...p,
+                          status: e.target.value as ReadingStatus,
+                        }))
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      {statuses.map(status => (
-                        <option key={status} value={status}>{statusLabels[status]}</option>
+                      {statuses.map((s) => (
+                        <option key={s} value={s}>
+                          {statusLabels[s]}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -259,17 +300,27 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
                       Total de Páginas
                     </label>
                     <input
+                      name="pages"
                       type="number"
-                      value={formData.pages || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, pages: e.target.value ? parseInt(e.target.value) : undefined }))}
+                      value={formData.pages ?? ""}
+                      onChange={(e) =>
+                        setFormData((p) => ({
+                          ...p,
+                          pages: e.target.value
+                            ? parseInt(e.target.value)
+                            : undefined,
+                        }))
+                      }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.pages ? 'border-red-500' : 'border-gray-300'
+                        errors.pages ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="300"
-                      min="1"
+                      min={1}
                     />
                     {errors.pages && (
-                      <p className="text-red-500 text-sm mt-1">{errors.pages}</p>
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.pages}
+                      </p>
                     )}
                   </div>
 
@@ -278,18 +329,30 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
                       Página Atual
                     </label>
                     <input
+                      name="currentPage"
                       type="number"
-                      value={formData.currentPage || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, currentPage: e.target.value ? parseInt(e.target.value) : undefined }))}
+                      value={formData.currentPage ?? ""}
+                      onChange={(e) =>
+                        setFormData((p) => ({
+                          ...p,
+                          currentPage: e.target.value
+                            ? parseInt(e.target.value)
+                            : 0,
+                        }))
+                      }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.currentPage ? 'border-red-500' : 'border-gray-300'
+                        errors.currentPage
+                          ? "border-red-500"
+                          : "border-gray-300"
                       }`}
                       placeholder="0"
-                      min="0"
-                      max={formData.pages || undefined}
+                      min={0}
+                      max={formData.pages ?? undefined}
                     />
                     {errors.currentPage && (
-                      <p className="text-red-500 text-sm mt-1">{errors.currentPage}</p>
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.currentPage}
+                      </p>
                     )}
                   </div>
 
@@ -298,19 +361,29 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
                       Avaliação (0-5)
                     </label>
                     <input
+                      name="rating"
                       type="number"
-                      value={formData.rating || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, rating: e.target.value ? parseFloat(e.target.value) : undefined }))}
+                      value={formData.rating ?? ""}
+                      onChange={(e) =>
+                        setFormData((p) => ({
+                          ...p,
+                          rating: e.target.value
+                            ? parseFloat(e.target.value)
+                            : 0,
+                        }))
+                      }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.rating ? 'border-red-500' : 'border-gray-300'
+                        errors.rating ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="5"
-                      min="0"
-                      max="5"
-                      step="0.1"
+                      min={0}
+                      max={5}
+                      step={0.1}
                     />
                     {errors.rating && (
-                      <p className="text-red-500 text-sm mt-1">{errors.rating}</p>
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.rating}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -320,11 +393,14 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
                     ISBN
                   </label>
                   <input
+                    name="isbn"
                     type="text"
                     value={formData.isbn}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isbn: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((p) => ({ ...p, isbn: e.target.value }))
+                    }
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.isbn ? 'border-red-500' : 'border-gray-300'
+                      errors.isbn ? "border-red-500" : "border-gray-300"
                     }`}
                     placeholder="978-3-16-148410-0"
                   />
@@ -338,8 +414,11 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
                     Sinopse
                   </label>
                   <textarea
+                    name="synopsis"
                     value={formData.synopsis}
-                    onChange={(e) => setFormData(prev => ({ ...prev, synopsis: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((p) => ({ ...p, synopsis: e.target.value }))
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={4}
                     placeholder="Digite uma breve sinopse do livro..."
@@ -351,8 +430,11 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
                     Notas Pessoais
                   </label>
                   <textarea
+                    name="notes"
                     value={formData.notes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((p) => ({ ...p, notes: e.target.value }))
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={3}
                     placeholder="Suas anotações sobre o livro..."
@@ -374,8 +456,8 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
                           alt="Preview da capa"
                           className="w-full max-w-sm mx-auto rounded-lg shadow-md"
                           onError={() => {
-                            setImagePreview('')
-                            setFormData(prev => ({ ...prev, cover: '' }))
+                            setImagePreview("");
+                            setFormData((p) => ({ ...p, cover: "" }));
                           }}
                         />
                         <button
@@ -390,14 +472,17 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
                       <div className="space-y-4">
                         <div className="w-48 h-64 mx-auto">
                           <DefaultBookCover
-                            title={formData.title || 'Título do Livro'}
-                            author={formData.author || 'Autor'}
+                            title={formData.title || "Título do Livro"}
+                            author={formData.author || "Autor"}
                             genre={formData.genre}
                             className="w-full h-full rounded-lg shadow-md"
                           />
                         </div>
                         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                          <Upload className="mx-auto mb-2 text-gray-400" size={32} />
+                          <Upload
+                            className="mx-auto mb-2 text-gray-400"
+                            size={32}
+                          />
                           <p className="text-sm text-gray-600 mb-1">
                             Clique para adicionar uma capa
                           </p>
@@ -431,11 +516,12 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
                     <div className="text-sm text-gray-600">
                       <p>Ou cole uma URL:</p>
                       <input
+                        name="cover"
                         type="url"
                         value={formData.cover}
                         onChange={(e) => {
-                          setFormData(prev => ({ ...prev, cover: e.target.value }))
-                          setImagePreview(e.target.value)
+                          setFormData((p) => ({ ...p, cover: e.target.value }));
+                          setImagePreview(e.target.value);
                         }}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                         placeholder="https://exemplo.com/capa.jpg"
@@ -448,9 +534,14 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
 
             <div className="flex gap-4 pt-6 border-t">
               <Button type="submit" className="flex-1">
-                {isEditing ? 'Salvar Alterações' : 'Adicionar Livro'}
+                {isEditing ? "Salvar Alterações" : "Adicionar Livro"}
               </Button>
-              <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                className="flex-1"
+              >
                 Cancelar
               </Button>
             </div>
@@ -458,5 +549,5 @@ export function BookForm({ book, onSubmit, onCancel, isEditing = false }: BookFo
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

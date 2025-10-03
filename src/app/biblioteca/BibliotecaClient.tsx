@@ -1,7 +1,6 @@
-// src/app/biblioteca/BibliotecaClient.tsx
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,19 +18,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// REMOVIDO: useBooks (não vamos mais usar contexto para dados iniciais)
-// import { useBooks } from '@/contexts/BookContext'
 import { useNotification } from "@/components/notification";
 import type { Book, Genre } from "@/types/book";
 import { Edit, Trash2, Plus, Search, Filter, Eye } from "lucide-react";
 import { DefaultBookCover } from "@/components/default-book-cover";
 import { ConfirmModal } from "@/components/confirm-modal";
-import { deleteBookFromClient } from "./actions";
 
 type Props = { initialBooks: Book[] };
 
 export default function BibliotecaClient({ initialBooks }: Props) {
-  // >>> substitui o contexto por estado local, inicializado com dados do servidor
   const [books, setBooks] = useState<Book[]>(initialBooks);
   const [filteredBooks, setFilteredBooks] = useState<Book[]>(initialBooks);
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
@@ -42,9 +37,7 @@ export default function BibliotecaClient({ initialBooks }: Props) {
   const searchParams = useSearchParams();
   const { showNotification } = useNotification();
 
-  useEffect(() => {
-    setFilteredBooks(books);
-  }, [books]);
+  useEffect(() => setFilteredBooks(books), [books]);
 
   const genres: Genre[] = [
     "Literatura Brasileira",
@@ -67,7 +60,6 @@ export default function BibliotecaClient({ initialBooks }: Props) {
   useEffect(() => {
     const urlSearch = searchParams.get("search") || "";
     const urlGenre = (searchParams.get("genre") as Genre | "all") || "all";
-
     setSearchQuery(urlSearch);
     setSelectedGenre(urlGenre);
     filterBooks(books, urlSearch, urlGenre);
@@ -79,7 +71,6 @@ export default function BibliotecaClient({ initialBooks }: Props) {
     genre: Genre | "all"
   ) => {
     let filtered = bookList;
-
     if (search) {
       const s = search.toLowerCase();
       filtered = filtered.filter(
@@ -88,11 +79,8 @@ export default function BibliotecaClient({ initialBooks }: Props) {
           book.author.toLowerCase().includes(s)
       );
     }
-
-    if (genre !== "all") {
+    if (genre !== "all")
       filtered = filtered.filter((book) => book.genre === genre);
-    }
-
     setFilteredBooks(filtered);
   };
 
@@ -123,23 +111,19 @@ export default function BibliotecaClient({ initialBooks }: Props) {
     window.history.replaceState({}, "", "/biblioteca");
   };
 
-  const handleEdit = (bookId: string) => {
-    router.push(`/editar/${bookId}`);
-  };
-
-  const handleViewDetails = (bookId: string) => {
+  const handleEdit = (bookId: string) => router.push(`/editar/${bookId}`);
+  const handleViewDetails = (bookId: string) =>
     router.push(`/biblioteca/${bookId}`);
-  };
 
-  const handleDelete = (book: Book) => {
-    setBookToDelete(book);
-  };
+  const handleDelete = (book: Book) => setBookToDelete(book);
 
-  // >>> AQUI trocamos o delete do contexto pela Server Action + atualização local
   const confirmDelete = async () => {
     if (!bookToDelete) return;
     try {
-      await deleteBookFromClient(bookToDelete.id);
+      const res = await fetch(`/api/books/${bookToDelete.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("delete failed");
       const next = books.filter((b) => b.id !== bookToDelete.id);
       setBooks(next);
       filterBooks(next, searchQuery, selectedGenre);
@@ -155,34 +139,30 @@ export default function BibliotecaClient({ initialBooks }: Props) {
   };
 
   const cancelDelete = () => setBookToDelete(null);
+  const handleAddNew = () => router.push("/adicionar");
 
-  const handleAddNew = () => {
-    router.push("/adicionar");
-  };
+  const getStatusLabel = (status: string) =>
+    ((
+      {
+        QUERO_LER: "Quero Ler",
+        LENDO: "Lendo",
+        LIDO: "Lido",
+        PAUSADO: "Pausado",
+        ABANDONADO: "Abandonado",
+      } as const
+    )[status] || status);
 
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      QUERO_LER: "Quero Ler",
-      LENDO: "Lendo",
-      LIDO: "Lido",
-      PAUSADO: "Pausado",
-      ABANDONADO: "Abandonado",
-    };
-    return labels[status] || status;
-  };
+  const getStatusColor = (status: string) =>
+    ((
+      {
+        QUERO_LER: "bg-blue-100 text-blue-800",
+        LENDO: "bg-yellow-100 text-yellow-800",
+        LIDO: "bg-green-100 text-green-800",
+        PAUSADO: "bg-orange-100 text-orange-800",
+        ABANDONADO: "bg-red-100 text-red-800",
+      } as const
+    )[status] || "bg-gray-100 text-gray-800");
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      QUERO_LER: "bg-blue-100 text-blue-800",
-      LENDO: "bg-yellow-100 text-yellow-800",
-      LIDO: "bg-green-100 text-green-800",
-      PAUSADO: "bg-orange-100 text-orange-800",
-      ABANDONADO: "bg-red-100 text-red-800",
-    };
-    return colors[status] || "bg-gray-100 text-gray-800";
-  };
-
-  // ====== TEU JSX ORIGINAL (idêntico) ======
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
@@ -218,12 +198,11 @@ export default function BibliotecaClient({ initialBooks }: Props) {
         </button>
       </div>
 
-      {/* Filtros e Busca */}
       <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 rounded-lg border">
         <div className="flex-1">
           <div className="relative">
             <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
               size={18}
             />
             <Input
@@ -263,7 +242,6 @@ export default function BibliotecaClient({ initialBooks }: Props) {
         </div>
       </div>
 
-      {/* Resultados */}
       <div className="flex justify-between items-center">
         <p className="text-sm text-muted-foreground">
           {filteredBooks.length === books.length
@@ -429,7 +407,6 @@ export default function BibliotecaClient({ initialBooks }: Props) {
         type="danger"
       />
 
-      {/* FAB */}
       <button
         onClick={handleAddNew}
         className="
