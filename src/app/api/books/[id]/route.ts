@@ -21,10 +21,11 @@ function mapPrismaBookToDto(book: any) {
 
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const book = await prisma.book.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { genre: true },
   });
   if (!book) return NextResponse.json({ error: "not found" }, { status: 404 });
@@ -33,8 +34,9 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const patch = await req.json();
   // Se vier "genre" como string, resolver/validar e mapear para genreId
   let genreId: string | undefined;
@@ -50,7 +52,7 @@ export async function PUT(
   // Derivar status se não enviado
   let statusToSet = patch.status;
   if (statusToSet === undefined) {
-    const existing = await prisma.book.findUnique({ where: { id: params.id } });
+    const existing = await prisma.book.findUnique({ where: { id } });
     const total = patch.pages ?? existing?.pages ?? 0;
     const current = patch.currentPage ?? existing?.currentPage ?? 0;
     if (total > 0 && current >= total) statusToSet = 'LIDO';
@@ -59,7 +61,7 @@ export async function PUT(
   }
 
   const updated = await prisma.book.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       title: patch.title,
       author: patch.author,
@@ -81,8 +83,9 @@ export async function PUT(
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  await prisma.book.delete({ where: { id: params.id } });
+  const { id } = await params;
+  await prisma.book.delete({ where: { id } });
   return NextResponse.json({ removed: 1 });
 }
