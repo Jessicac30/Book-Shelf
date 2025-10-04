@@ -4,8 +4,9 @@ const nextConfig = {
     position: 'bottom-right',
   },
   experimental: {
-    optimizePackageImports: ['lucide-react']
+    optimizePackageImports: ['lucide-react'],
   },
+  serverExternalPackages: ['@libsql/client', '@prisma/adapter-libsql'],
   images: {
     remotePatterns: [
       {
