@@ -19,48 +19,47 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useNotification } from "@/components/notification";
 import type { Book, Genre } from "@/types/book";
-import { Edit, Trash2, Plus, Search, Filter, Eye } from "lucide-react";
+import { Edit, Trash2, Plus, Search, Filter, Eye, Library, Sparkles } from "lucide-react";
 import { DefaultBookCover } from "@/components/default-book-cover";
 import { ConfirmModal } from "@/components/confirm-modal";
-import { bookService } from "@/lib/book-service";
+import { Pagination } from "@/components/ui/pagination";
+import { Recommendations } from "@/components/recommendations";
+import { deleteBookFromClient } from "./actions";
 
 type Props = { initialBooks: Book[] };
 
+const BOOKS_PER_PAGE = 12;
+
 export default function BibliotecaClient({ initialBooks }: Props) {
+  const [activeTab, setActiveTab] = useState("meus-livros");
   const [books, setBooks] = useState<Book[]>(initialBooks);
   const [filteredBooks, setFilteredBooks] = useState<Book[]>(initialBooks);
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGenre, setSelectedGenre] = useState<Genre | "all">("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showNotification } = useNotification();
 
   // Função para recarregar os livros
-  const reloadBooks = () => {
-    if (typeof window !== 'undefined') {
-      const loadedBooks = bookService.getAllBooks();
-      setBooks(loadedBooks);
-      setFilteredBooks(loadedBooks);
-    }
+  const reloadBooks = async () => {
+    try {
+      const res = await fetch('/api/books', { cache: 'no-store' })
+      if (!res.ok) throw new Error('erro')
+      const data = await res.json()
+      setBooks(data)
+      setFilteredBooks(data)
+    } catch {}
   };
 
   // Carregar livros do localStorage na inicialização
   useEffect(() => {
-    // Verificar se estamos no cliente (não SSR)
-    if (typeof window !== 'undefined') {
-      try {
-        const loadedBooks = bookService.getAllBooks();
-        setBooks(loadedBooks);
-        setFilteredBooks(loadedBooks);
-      } catch (error) {
-        console.error('Erro ao carregar livros:', error);
-        // Em caso de erro, manter os livros iniciais
-      }
-    }
+    reloadBooks()
   }, []);
 
   // Recarregar livros quando a página recebe foco (volta da edição)
@@ -133,6 +132,7 @@ export default function BibliotecaClient({ initialBooks }: Props) {
       filtered = filtered.filter((book) => book.genre === genre);
     }
     setFilteredBooks(filtered);
+    setCurrentPage(1); // Reset para primeira página ao filtrar
   };
 
   const updateUrlParams = (search: string, genre: Genre | "all") => {
@@ -177,18 +177,13 @@ export default function BibliotecaClient({ initialBooks }: Props) {
   const confirmDelete = async () => {
     if (!bookToDelete) return;
     try {
-      const success = bookService.deleteBook(bookToDelete.id);
-      if (success) {
-        const updatedBooks = bookService.getAllBooks();
-        setBooks(updatedBooks);
-        filterBooks(updatedBooks, searchQuery, selectedGenre);
-        showNotification(
-          "success",
-          `Livro "${bookToDelete.title}" excluído com sucesso!`
-        );
-      } else {
-        showNotification("error", "Livro não encontrado.");
-      }
+      await deleteBookFromClient(bookToDelete.id)
+      await reloadBooks()
+      filterBooks(books, searchQuery, selectedGenre)
+      showNotification(
+        "success",
+        `Livro "${bookToDelete.title}" excluído com sucesso!`
+      );
     } catch {
       showNotification("error", "Erro ao excluir o livro.");
     } finally {
@@ -230,25 +225,44 @@ export default function BibliotecaClient({ initialBooks }: Props) {
         <h2 className="text-3xl font-bold tracking-tight">Biblioteca</h2>
       </div>
 
-      {/* Filtros e Busca */}
-      <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-        <div className="flex-1">
-          <div className="relative">
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={18}
-            />
-            <Input
-              placeholder="Buscar por título ou autor..."
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
+      {/* Tabs */}
+      <Tabs className="w-full">
+        <TabsList className="w-full sm:w-auto">
+          <TabsTrigger
+            active={activeTab === "meus-livros"}
+            onClick={() => setActiveTab("meus-livros")}
+          >
+            <Library size={16} className="mr-2" />
+            Meus Livros ({books.length})
+          </TabsTrigger>
+          <TabsTrigger
+            active={activeTab === "recomendacoes"}
+            onClick={() => setActiveTab("recomendacoes")}
+          >
+            <Sparkles size={16} className="mr-2" />
+            Recomendações
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Conteúdo: Meus Livros */}
+        <TabsContent active={activeTab === "meus-livros"}>
+          {/* Filtros e Busca */}
+          <div className="flex flex-col sm:flex-row gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="relative w-full sm:w-80">
+          <Search
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            size={18}
+          />
+          <Input
+            placeholder="Buscar por título ou autor..."
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap sm:flex-nowrap">
           <Select value={selectedGenre} onValueChange={handleGenreChange}>
-            <SelectTrigger className="w-[180px] focus:ring-2 focus:ring-blue-500">
+            <SelectTrigger className="w-full sm:w-[200px] focus:ring-2 focus:ring-blue-500">
               <div className="flex items-center gap-2">
                 <Filter size={16} />
                 <SelectValue placeholder="Filtrar por gênero" />
@@ -267,7 +281,7 @@ export default function BibliotecaClient({ initialBooks }: Props) {
             <Button
               variant="outline"
               onClick={clearFilters}
-              className="hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="hover:bg-gray-100 dark:hover:bg-gray-700 whitespace-nowrap"
             >
               Limpar
             </Button>
@@ -276,12 +290,17 @@ export default function BibliotecaClient({ initialBooks }: Props) {
       </div>
 
       {/* Resultados */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center my-6">
         <p className="text-sm text-muted-foreground">
           {filteredBooks.length === books.length
             ? `${books.length} livros encontrados`
             : `${filteredBooks.length} de ${books.length} livros encontrados`}
         </p>
+        {filteredBooks.length > BOOKS_PER_PAGE && (
+          <p className="text-sm text-muted-foreground">
+            Página {currentPage} de {Math.ceil(filteredBooks.length / BOOKS_PER_PAGE)}
+          </p>
+        )}
       </div>
 
       {filteredBooks.length === 0 ? (
@@ -300,8 +319,11 @@ export default function BibliotecaClient({ initialBooks }: Props) {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredBooks.map((book) => (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredBooks
+              .slice((currentPage - 1) * BOOKS_PER_PAGE, currentPage * BOOKS_PER_PAGE)
+              .map((book) => (
             <Card
               key={book.id}
               className="h-full flex flex-col hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
@@ -370,11 +392,10 @@ export default function BibliotecaClient({ initialBooks }: Props) {
                       <strong>Ano:</strong> {book.year}
                     </p>
                   )}
-                  {book.pages && (
+                  {book.pages && book.pages > 0 && (
                     <p className="text-sm text-muted-foreground">
-                      <strong>Páginas:</strong> {book.currentPage || 0}/
-                      {book.pages}
-                      {book.pages && book.currentPage && (
+                      <strong>Páginas:</strong> {book.currentPage > 0 ? `${book.currentPage}/` : ''}{book.pages}
+                      {book.currentPage > 0 && (
                         <span className="ml-2 text-xs">
                           ({Math.round((book.currentPage / book.pages) * 100)}%)
                         </span>
@@ -382,15 +403,17 @@ export default function BibliotecaClient({ initialBooks }: Props) {
                     </p>
                   )}
                   {book.status && (
-                    <span
-                      className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        book.status
-                      )}`}
-                    >
-                      {getStatusLabel(book.status)}
-                    </span>
+                    <div>
+                      <span
+                        className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          book.status
+                        )}`}
+                      >
+                        {getStatusLabel(book.status)}
+                      </span>
+                    </div>
                   )}
-                  {book.rating && book.rating > 0 && (
+                  {book.rating != null && book.rating > 0 && (
                     <p className="text-sm text-muted-foreground">
                       <strong>Avaliação:</strong> {book.rating}/5 ⭐
                     </p>
@@ -435,7 +458,25 @@ export default function BibliotecaClient({ initialBooks }: Props) {
             </Card>
           ))}
         </div>
+
+        {/* Paginação */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(filteredBooks.length / BOOKS_PER_PAGE)}
+          onPageChange={(page) => {
+            setCurrentPage(page)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }}
+        />
+      </>
       )}
+        </TabsContent>
+
+        {/* Conteúdo: Recomendações */}
+        <TabsContent active={activeTab === "recomendacoes"}>
+          <Recommendations />
+        </TabsContent>
+      </Tabs>
 
       <ConfirmModal
         isOpen={!!bookToDelete}

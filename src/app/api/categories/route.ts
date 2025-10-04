@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { db } from "@/data/store";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  return NextResponse.json(db.genres); // <<< aqui é genres
+  const genres = await prisma.genre.findMany({ orderBy: { name: "asc" } });
+  return NextResponse.json(genres.map((g) => g.name));
 }

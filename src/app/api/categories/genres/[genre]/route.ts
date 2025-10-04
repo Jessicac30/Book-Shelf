@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
-import { db } from "@/data/store";
+import { prisma } from "@/lib/prisma";
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: Promise<{ genre: string }> }
+  { params }: { params: { genre: string } }
 ) {
-  const { genre } = await params;
-  const name = decodeURIComponent(genre);
-  const before = db.genres.length;
-  db.genres = db.genres.filter((g) => g !== name); // <<< genres
-  return NextResponse.json({ removed: before - db.genres.length });
+  const name = decodeURIComponent(params.genre);
+  try {
+    const genre = await prisma.genre.findUnique({ where: { name } });
+    if (!genre) return NextResponse.json({ removed: 0 });
+
+    await prisma.book.updateMany({ where: { genreId: genre.id }, data: { genreId: null } });
+    await prisma.genre.delete({ where: { id: genre.id } });
+    return NextResponse.json({ removed: 1 });
+  } catch {
+    return NextResponse.json({ removed: 0 });
+  }
 }

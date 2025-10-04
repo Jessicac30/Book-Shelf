@@ -26,14 +26,38 @@ O projeto foi desenvolvido em duas partes, abrangendo desde as funcionalidades b
 - **Sistema de Rastreamento de Leitura:** Acompanhe o progresso da sua leitura com indicadores visuais e estatísticas detalhadas
 - **Relacionamentos de Dados:** Estrutura otimizada com relacionamentos entre livros e gêneros para consultas eficientes
 
+### Melhorias Recentes (Performance e UX)
+- **Validação com Zod:** Validação robusta de formulários com mensagens de erro em português e validação em tempo real
+- **React Hook Form:** Formulários otimizados com menos re-renders e melhor performance
+- **Skeleton Loaders:** Estados de carregamento profissionais com animações shimmer
+- **Paginação:** Sistema de paginação inteligente (12 livros por página) com navegação suave
+- **Integração Google Books API:** Busca externa de livros com preenchimento automático de dados
+- **Auto-derivação de Status:** Status de leitura atualizado automaticamente baseado no progresso
+
+
 ## 💻 Tecnologias
+
+### Core
 - **Next.js 15** - Framework React com App Router e Server/Client Components
 - **React 19** - Biblioteca principal para a interface do usuário
 - **TypeScript** - Tipagem estática para um código mais seguro e robusto
-- **Tailwind CSS** - Framework utilitário para estilização rápida e responsiva
-- **shadcn/ui** - Biblioteca de componentes de UI de alta qualidade
+
+### Database & Validation
 - **Prisma ORM** - ORM moderno com type safety completo para TypeScript
 - **SQLite** - Banco de dados relacional leve e eficiente
+- **Zod** - Schema validation com inferência de tipos
+- **React Hook Form** - Gerenciamento de formulários performático
+
+### UI & Styling
+- **Tailwind CSS** - Framework utilitário para estilização rápida e responsiva
+- **shadcn/ui** - Biblioteca de componentes de UI de alta qualidade
+- **next-themes** - Sistema de temas com suporte a dark mode
+- **Framer Motion** - Animações e transições suaves
+- **Lucide React** - Ícones modernos e otimizados
+
+### APIs & Integrations
+- **Google Books API** - Busca externa de livros
+- **Next.js API Routes** - Endpoints RESTful para gerenciamento de dados
 
 ## 🚀 Como Usar
 Para executar o projeto localmente, siga os passos abaixo.
@@ -106,17 +130,46 @@ enum ReadingStatus {
 }
 ```
 
-🤝 Contribuição
+
+## 🎯 Roadmap Futuro
+
+- [ ] Autenticação de usuários (multi-usuário)
+- [ ] Metas de leitura anuais
+- [ ] Gráficos e estatísticas avançadas
+- [ ] Exportar biblioteca (CSV, PDF)
+- [ ] Compartilhamento de listas de leitura
+- [ ] PWA (Progressive Web App)
+- [ ] Modo offline
+- [ ] Notificações de lembretes de leitura
+
+## 🤝 Contribuição
+
 Sinta-se à vontade para abrir uma issue ou um pull request se desejar sugerir melhorias ou reportar bugs.
 
-🧑‍💻 Autores
-Este projeto foi um trabalho em grupo.
+### Como Contribuir
 
-Antonio Maycon
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
+3. Commit suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
+4. Push para a branch (`git push origin feature/MinhaFeature`)
+5. Abra um Pull Request
 
-Cristiane de Araujo Ferreira 
+## 📝 Licença
 
-Danilo Vieira
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
-Jessica Maria de Carvalho
+## 🧑‍💻 Autores
+
+Este projeto foi desenvolvido como trabalho em grupo:
+
+- **Antonio Maycon**
+- **Cristiane de Araujo Ferreira**
+- **Danilo Vieira**
+- **Jessica Maria de Carvalho**
+
+---
+
+⭐ Se este projeto te ajudou, considere dar uma estrela no GitHub!
+
+**Desenvolvido com ❤️ usando Next.js 15 e React 19**
 

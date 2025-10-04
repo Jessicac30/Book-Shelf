@@ -3,27 +3,20 @@
 import { useRouter } from "next/navigation";
 import { BookForm } from "@/components/book-form";
 import { useNotification } from "@/components/notification";
-import type { Book } from "@/types/book";
-import { bookService } from "@/lib/book-service";
+import { createBookFromClient } from "../biblioteca/actions";
+import type { BookFormData } from "@/lib/validations/book";
 
 export default function AdicionarPage() {
   const router = useRouter();
   const { showNotification } = useNotification();
 
-  const handleSubmit = (data: Omit<Book, "id">) => {
-    if (!data.title || !data.author || !data.genre) {
-      showNotification(
-        "error",
-        "Preencha Título, Autor e selecione um Gênero."
-      );
-      return;
-    }
+  const handleSubmit = async (data: BookFormData) => {
     try {
-      const newBook = bookService.addBook(data);
-      showNotification("success", `Livro "${data.title}" adicionado!`);
+      await createBookFromClient(data as any);
+      showNotification("success", `Livro "${data.title}" adicionado com sucesso!`);
       router.push("/biblioteca");
     } catch (e: any) {
-      showNotification("error", e?.message ?? "Erro ao adicionar.");
+      showNotification("error", e?.message ?? "Erro ao adicionar livro. Tente novamente.");
     }
   };
 

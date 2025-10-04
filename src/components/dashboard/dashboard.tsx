@@ -5,7 +5,6 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Book, BookOpen, CheckCircle2, FileText, Plus } from "lucide-react";
 import { StatsCard } from "./stats-card";
-import { bookService } from "@/lib/book-service";
 import type { Book as BookType } from "@/types/book";
 import {
   Card,
@@ -20,12 +19,13 @@ import { Button } from "@/components/ui/button";
 export function Dashboard() {
   const [books, setBooks] = useState<BookType[]>([]);
 
-  // Carregar livros do bookService
-  const loadBooks = () => {
-    if (typeof window !== 'undefined') {
-      const loadedBooks = bookService.getAllBooks();
-      setBooks(loadedBooks);
-    }
+  const loadBooks = async () => {
+    try {
+      const res = await fetch('/api/books', { cache: 'no-store' })
+      if (!res.ok) throw new Error('erro')
+      const data = await res.json()
+      setBooks(data)
+    } catch {}
   };
 
   useEffect(() => {
@@ -54,7 +54,39 @@ export function Dashboard() {
   }, []);
 
   const stats = useMemo(() => {
-    return bookService.getStats();
+    const acc = {
+      total: 0,
+      read: 0,
+      reading: 0,
+      wantToRead: 0,
+      paused: 0,
+      abandoned: 0,
+      totalPages: 0,
+      pagesRead: 0,
+    };
+    for (const book of books) {
+      acc.total++;
+      switch (book.status) {
+        case 'LIDO':
+          acc.read++;
+          break;
+        case 'LENDO':
+          acc.reading++;
+          break;
+        case 'QUERO_LER':
+          acc.wantToRead++;
+          break;
+        case 'PAUSADO':
+          acc.paused++;
+          break;
+        case 'ABANDONADO':
+          acc.abandoned++;
+          break;
+      }
+      if (book.pages) acc.totalPages += book.pages;
+      if (book.currentPage) acc.pagesRead += book.currentPage;
+    }
+    return acc;
   }, [books]);
 
   const recentBooks = useMemo(() => {
@@ -136,33 +168,32 @@ export function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-4">
             {recentBooks.map((book) => (
-              <div
-                key={book.id}
-                className="group flex items-center space-x-4 p-3 rounded-lg hover:bg-secondary transition-all duration-200 cursor-pointer"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium leading-none text-foreground transition-colors">
-                    {book.title}
-                  </p>
-                  <p className="text-sm text-muted-foreground transition-colors">
-                    {book.author}
-                  </p>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {book.status === "LENDO" &&
-                    book.currentPage &&
-                    book.pages && (
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 rounded-full text-xs font-medium">
-                        {Math.round((book.currentPage / book.pages) * 100)}%
+              <Link href={`/editar/${book.id}`} key={book.id}>
+                <div className="group flex items-center space-x-4 p-3 rounded-lg hover:bg-secondary transition-all duration-200 cursor-pointer">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium leading-none text-foreground transition-colors">
+                      {book.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground transition-colors">
+                      {book.author}
+                    </p>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {book.status === "LENDO" &&
+                      book.currentPage &&
+                      book.pages && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 rounded-full text-xs font-medium">
+                          {Math.round((book.currentPage / book.pages) * 100)}%
+                        </span>
+                      )}
+                    {book.status === "LIDO" && (
+                      <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 rounded-full text-xs font-medium">
+                        Concluído
                       </span>
                     )}
-                  {book.status === "LIDO" && (
-                    <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 rounded-full text-xs font-medium">
-                      Concluído
-                    </span>
-                  )}
+                  </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </CardContent>
         </Card>

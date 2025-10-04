@@ -5,13 +5,12 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { NotificationProvider } from "@/components/notification";
-import { BookProvider } from "@/contexts/BookContext";
-import { Header } from "@/components/header"; // <-- 1. ADICIONE A IMPORTAÇÃO AQUI
+import { Header } from "@/components/header";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "BookShelf", // Mudei para um título mais legal :)
+  title: "BookShelf",
   description: "Sua estante de livros digital",
 };
 
@@ -29,12 +28,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <BookProvider>
-            <NotificationProvider>
-              <Header /> {/* <-- 2. CHAME O COMPONENTE HEADER AQUI */}
-              {children}
-            </NotificationProvider>
-          </BookProvider>
+          <NotificationProvider>
+            <Header />
+            {children}
+          </NotificationProvider>
         </ThemeProvider>
       </body>
     </html>

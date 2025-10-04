@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npm run db:generate && npm run build",
+  "env": {
+    "DATABASE_URL": "file:./dev.db"
+  }
+}

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { useNotification } from "@/components/notification";
 import { Book } from "@/types/book";
-import { bookService } from "@/lib/book-service";
+import { deleteBookFromClient } from "../actions";
 import {
   ArrowLeft,
   Edit,
@@ -33,10 +33,16 @@ export default function BookDetailPage() {
   const params = useParams();
   const { showNotification } = useNotification();
 
-  const loadBook = () => {
-    if (params.id) {
-      const foundBook = bookService.getBookById(params.id as string);
-      setBook(foundBook || null);
+  const loadBook = async () => {
+    if (!params.id) return;
+    try {
+      const res = await fetch(`/api/books/${params.id}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('not found');
+      const data = await res.json();
+      setBook(data as Book);
+    } catch {
+      setBook(null);
+    } finally {
       setLoading(false);
     }
   };
@@ -80,18 +86,15 @@ export default function BookDetailPage() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    if (book) {
-      const success = bookService.deleteBook(book.id);
-      if (success) {
-        showNotification(
-          "success",
-          `Livro "${book.title}" excluído com sucesso!`
-        );
-        router.push("/biblioteca");
-      } else {
-        showNotification("error", "Erro ao excluir o livro.");
-      }
+  const confirmDelete = async () => {
+    if (!book) return;
+    try {
+      await deleteBookFromClient(book.id);
+      showNotification("success", `Livro "${book.title}" excluído com sucesso!`);
+      router.push("/biblioteca");
+    } catch {
+      showNotification("error", "Erro ao excluir o livro.");
+    } finally {
       setShowDeleteModal(false);
     }
   };
@@ -291,7 +294,7 @@ export default function BookDetailPage() {
                 )}
               </div>
 
-              {book.rating && book.rating > 0 && (
+              {book.rating != null && book.rating > 0 && (
                 <div className="flex items-center space-x-2">
                   <span className="font-medium">Avaliação:</span>
                   <div className="flex items-center space-x-1">

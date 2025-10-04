@@ -1,18 +1,30 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Book, Genre, ReadingStatus } from "@/types/book";
-import { Upload, X } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Book, Genre } from "@/types/book";
+import { Upload, X, Search } from "lucide-react";
 import { DefaultBookCover } from "./default-book-cover";
+import { bookSchema, type BookFormData } from "@/lib/validations/book";
 
 interface BookFormProps {
   book?: Book;
-  onSubmit: (book: Omit<Book, "id">) => void;
+  onSubmit: (book: BookFormData) => void;
   onCancel: () => void;
   isEditing?: boolean;
 }
+
+const statusLabels = {
+  QUERO_LER: "Quero Ler",
+  LENDO: "Lendo",
+  LIDO: "Lido",
+  PAUSADO: "Pausado",
+  ABANDONADO: "Abandonado",
+} as const;
 
 const genres: Genre[] = [
   "Literatura Brasileira",
@@ -32,97 +44,58 @@ const genres: Genre[] = [
   "Poesia",
 ];
 
-const statuses: ReadingStatus[] = [
-  "QUERO_LER",
-  "LENDO",
-  "LIDO",
-  "PAUSADO",
-  "ABANDONADO",
-];
-
-const statusLabels: Record<ReadingStatus, string> = {
-  QUERO_LER: "Quero Ler",
-  LENDO: "Lendo",
-  LIDO: "Lido",
-  PAUSADO: "Pausado",
-  ABANDONADO: "Abandonado",
-};
-
-const CURRENT_YEAR = 2024; // Usar ano fixo para evitar problemas de hidratação
-
 export function BookForm({
   book,
   onSubmit,
   onCancel,
   isEditing = false,
 }: BookFormProps) {
-  const [formData, setFormData] = useState<Omit<Book, "id">>({
-    title: book?.title || "",
-    author: book?.author || "",
-    genre: book?.genre,
-    year: book?.year,
-    pages: book?.pages,
-    currentPage: book?.currentPage || 0,
-    status: book?.status || "QUERO_LER",
-    isbn: book?.isbn || "",
-    cover: book?.cover || "",
-    rating: book?.rating || 0,
-    synopsis: book?.synopsis || "",
-    notes: book?.notes || "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    watch,
+    setValue,
+  } = useForm<BookFormData>({
+    resolver: zodResolver(bookSchema),
+    defaultValues: {
+      title: book?.title || "",
+      author: book?.author || "",
+      genre: book?.genre || undefined,
+      year: book?.year || undefined,
+      pages: book?.pages || undefined,
+      currentPage: book?.currentPage || 0,
+      status: book?.status || "QUERO_LER",
+      isbn: book?.isbn || "",
+      cover: book?.cover || "",
+      rating: book?.rating || 0,
+      synopsis: book?.synopsis || "",
+      notes: book?.notes || "",
+    },
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [imagePreview, setImagePreview] = useState<string>(book?.cover || "");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imagePreview, setImagePreview] = useState<string>(book?.cover || "");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [results, setResults] = useState<any[]>([]);
+  const [showResults, setShowResults] = useState(false);
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
+  const watchedValues = watch();
+  const title = watch("title");
+  const author = watch("author");
+  const genre = watch("genre");
+  const year = watch("year");
+  const pages = watch("pages");
+  const isbn = watch("isbn");
+  const synopsis = watch("synopsis");
 
-    if (!formData.title.trim()) {
-      newErrors.title = "Título é obrigatório";
-    }
-
-    if (!formData.author.trim()) {
-      newErrors.author = "Autor é obrigatório";
-    }
-
-    if (
-      formData.year &&
-      (formData.year < 1000 || formData.year > CURRENT_YEAR)
-    ) {
-      newErrors.year = "Ano deve estar entre 1000 e o ano atual";
-    }
-
-    if (formData.pages && formData.pages <= 0) {
-      newErrors.pages = "Número de páginas deve ser maior que 0";
-    }
-
-    if (
-      formData.currentPage &&
-      formData.pages &&
-      formData.currentPage > formData.pages
-    ) {
-      newErrors.currentPage =
-        "Página atual não pode ser maior que o total de páginas";
-    }
-
-    if (formData.rating && (formData.rating < 0 || formData.rating > 5)) {
-      newErrors.rating = "Avaliação deve estar entre 0 e 5";
-    }
-
-    if (formData.isbn && !/^[\d-x]+$/i.test(formData.isbn.replace(/\s/g, ""))) {
-      newErrors.isbn = "ISBN deve conter apenas números, hífens e X";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      onSubmit({ ...formData, cover: imagePreview });
-    }
+  const getProgressPercentage = (): number => {
+    const requiredFields = [title, author].filter(Boolean).length;
+    const optionalFields = [genre, year, pages, isbn, imagePreview, synopsis].filter(Boolean).length;
+    const total = 8;
+    const filled = requiredFields + optionalFields;
+    return Math.round((filled / total) * 100);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,7 +105,7 @@ export function BookForm({
       reader.onload = (e) => {
         const result = e.target?.result as string;
         setImagePreview(result);
-        setFormData((prev) => ({ ...prev, cover: result }));
+        setValue("cover", result);
       };
       reader.readAsDataURL(file);
     }
@@ -140,28 +113,47 @@ export function BookForm({
 
   const removeImage = () => {
     setImagePreview("");
-    setFormData((prev) => ({ ...prev, cover: "" }));
+    setValue("cover", "");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
-  const getProgressPercentage = (): number => {
-    const requiredFields = [formData.title, formData.author].filter(
-      Boolean
-    ).length;
-    const optionalFields = [
-      formData.genre,
-      formData.year,
-      formData.pages,
-      formData.isbn,
-      imagePreview,
-      formData.synopsis,
-    ].filter(Boolean).length;
+  let searchTimer: any = null;
+  const searchBooks = (q: string) => {
+    const query = q.trim();
+    setSearchQuery(q);
+    if (searchTimer) clearTimeout(searchTimer);
+    if (query.length < 3) {
+      setResults([]);
+      setShowResults(false);
+      return;
+    }
+    setSearching(true);
+    searchTimer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/external/books?query=${encodeURIComponent(query)}&limit=8`);
+        const data = await res.json();
+        setResults(Array.isArray(data.items) ? data.items : []);
+        setShowResults(true);
+      } catch {
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+  };
 
-    const total = 8;
-    const filled = requiredFields + optionalFields;
-    return Math.round((filled / total) * 100);
+  const applyFromResult = (item: any) => {
+    setValue("title", item.title || "");
+    setValue("author", item.author || "");
+    setValue("pages", item.pages || undefined);
+    setValue("year", item.publishedYear || undefined);
+    setValue("isbn", item.isbn || "");
+    setValue("synopsis", item.synopsis || "");
+    setValue("cover", item.cover || "");
+    if (item.cover) setImagePreview(item.cover);
+    setShowResults(false);
   };
 
   return (
@@ -184,211 +176,205 @@ export function BookForm({
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
+                {/* Busca externa */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Buscar livro (título, autor ou ISBN)
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => searchBooks(e.target.value)}
+                      placeholder="Ex.: Clean Code, Tolkien, 978..."
+                      className="w-full pl-10 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600"
+                    />
+                  </div>
+                  {showResults && (
+                    <div className="mt-2 max-h-72 overflow-auto border rounded-md divide-y bg-white dark:bg-gray-800 shadow-sm">
+                      {searching && (
+                        <div className="p-3 text-sm text-muted-foreground">Buscando...</div>
+                      )}
+                      {!searching && results.length === 0 && (
+                        <div className="p-3 text-sm text-muted-foreground">Nenhum resultado</div>
+                      )}
+                      {results.map((r) => (
+                        <button
+                          key={r.id}
+                          type="button"
+                          onClick={() => applyFromResult(r)}
+                          className="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex gap-3 transition-colors"
+                        >
+                          {r.cover ? (
+                            <img src={r.cover} alt="capa" className="w-12 h-16 object-cover rounded shadow-sm flex-shrink-0" />
+                          ) : (
+                            <div className="w-12 h-16 bg-gray-200 dark:bg-gray-700 rounded flex-shrink-0" />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-1 line-clamp-2">
+                              {r.title || 'Sem título'}
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mb-1 truncate">
+                              {r.author || 'Autor desconhecido'}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-500 truncate">
+                              {r.isbn || ''} {r.publishedYear ? `• ${r.publishedYear}` : ''}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Título e Autor */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Título *
                     </label>
                     <input
+                      {...register("title")}
                       type="text"
-                      value={formData.title}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          title: e.target.value,
-                        }))
-                      }
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 ${
                         errors.title ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="Digite o título do livro"
                     />
                     {errors.title && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.title}
-                      </p>
+                      <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Autor *
                     </label>
                     <input
+                      {...register("author")}
                       type="text"
-                      value={formData.author}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          author: e.target.value,
-                        }))
-                      }
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 ${
                         errors.author ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="Digite o nome do autor"
                     />
                     {errors.author && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.author}
-                      </p>
+                      <p className="text-red-500 text-sm mt-1">{errors.author.message}</p>
                     )}
                   </div>
                 </div>
 
+                {/* Gênero, Ano, Status */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Gênero
                     </label>
-                    <select
-                      value={formData.genre || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          genre: (e.target.value as Genre) || undefined,
-                        }))
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    <Select
+                      value={watchedValues.genre || ""}
+                      onValueChange={(value) => setValue("genre", value as Genre)}
                     >
-                      <option value="">Selecione um gênero</option>
-                      {genres.map((genre) => (
-                        <option key={genre} value={genre}>
-                          {genre}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="w-full dark:bg-gray-800 dark:border-gray-600">
+                        <SelectValue placeholder="Selecione um gênero" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {genres.map((genre) => (
+                          <SelectItem key={genre} value={genre}>
+                            {genre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.genre && (
+                      <p className="text-red-500 text-sm mt-1">{errors.genre.message}</p>
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Ano
                     </label>
                     <input
+                      {...register("year", { valueAsNumber: true })}
                       type="number"
-                      value={formData.year || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          year: e.target.value
-                            ? parseInt(e.target.value)
-                            : undefined,
-                        }))
-                      }
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 ${
                         errors.year ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="2024"
                       min="1000"
-                      max={CURRENT_YEAR}
                     />
                     {errors.year && (
-                      <p className="text-red-500 text-sm mt-1">{errors.year}</p>
+                      <p className="text-red-500 text-sm mt-1">{errors.year.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Status
                     </label>
                     <select
-                      value={formData.status}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          status: e.target.value as ReadingStatus,
-                        }))
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      {...register("status")}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600"
                     >
-                      {statuses.map((status) => (
-                        <option key={status} value={status}>
-                          {statusLabels[status]}
+                      {Object.entries(statusLabels).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
                         </option>
                       ))}
                     </select>
                   </div>
                 </div>
 
+                {/* Páginas, Página Atual, Rating */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Total de Páginas
                     </label>
                     <input
+                      {...register("pages", { valueAsNumber: true })}
                       type="number"
-                      value={formData.pages || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          pages: e.target.value
-                            ? parseInt(e.target.value)
-                            : undefined,
-                        }))
-                      }
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 ${
                         errors.pages ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="300"
                       min="1"
                     />
                     {errors.pages && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.pages}
-                      </p>
+                      <p className="text-red-500 text-sm mt-1">{errors.pages.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Página Atual
                     </label>
                     <input
+                      {...register("currentPage", { valueAsNumber: true })}
                       type="number"
-                      value={formData.currentPage || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          currentPage: e.target.value
-                            ? parseInt(e.target.value)
-                            : undefined,
-                        }))
-                      }
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.currentPage
-                          ? "border-red-500"
-                          : "border-gray-300"
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 ${
+                        errors.currentPage ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="0"
                       min="0"
-                      max={formData.pages || undefined}
                     />
                     {errors.currentPage && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.currentPage}
-                      </p>
+                      <p className="text-red-500 text-sm mt-1">{errors.currentPage.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Avaliação (0-5)
                     </label>
                     <input
+                      {...register("rating", { valueAsNumber: true })}
                       type="number"
-                      value={formData.rating || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          rating: e.target.value
-                            ? parseFloat(e.target.value)
-                            : undefined,
-                        }))
-                      }
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 ${
                         errors.rating ? "border-red-500" : "border-gray-300"
                       }`}
                       placeholder="5"
@@ -397,73 +383,66 @@ export function BookForm({
                       step="0.1"
                     />
                     {errors.rating && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.rating}
-                      </p>
+                      <p className="text-red-500 text-sm mt-1">{errors.rating.message}</p>
                     )}
                   </div>
                 </div>
 
+                {/* ISBN */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     ISBN
                   </label>
                   <input
+                    {...register("isbn")}
                     type="text"
-                    value={formData.isbn}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, isbn: e.target.value }))
-                    }
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 ${
                       errors.isbn ? "border-red-500" : "border-gray-300"
                     }`}
                     placeholder="978-3-16-148410-0"
                   />
                   {errors.isbn && (
-                    <p className="text-red-500 text-sm mt-1">{errors.isbn}</p>
+                    <p className="text-red-500 text-sm mt-1">{errors.isbn.message}</p>
                   )}
                 </div>
 
+                {/* Sinopse */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Sinopse
                   </label>
                   <textarea
-                    value={formData.synopsis}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        synopsis: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    {...register("synopsis")}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600"
                     rows={4}
                     placeholder="Digite uma breve sinopse do livro..."
                   />
+                  {errors.synopsis && (
+                    <p className="text-red-500 text-sm mt-1">{errors.synopsis.message}</p>
+                  )}
                 </div>
 
+                {/* Notas */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Notas Pessoais
                   </label>
                   <textarea
-                    value={formData.notes}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        notes: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    {...register("notes")}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600"
                     rows={3}
                     placeholder="Suas anotações sobre o livro..."
                   />
+                  {errors.notes && (
+                    <p className="text-red-500 text-sm mt-1">{errors.notes.message}</p>
+                  )}
                 </div>
               </div>
 
+              {/* Coluna da Capa */}
               <div className="lg:col-span-1">
                 <div className="sticky top-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Capa do Livro
                   </label>
 
@@ -476,7 +455,7 @@ export function BookForm({
                           className="w-full max-w-sm mx-auto rounded-lg shadow-md"
                           onError={() => {
                             setImagePreview("");
-                            setFormData((prev) => ({ ...prev, cover: "" }));
+                            setValue("cover", "");
                           }}
                         />
                         <button
@@ -488,27 +467,13 @@ export function BookForm({
                         </button>
                       </>
                     ) : (
-                      <div className="space-y-4">
-                        <div className="w-48 h-64 mx-auto">
-                          <DefaultBookCover
-                            title={formData.title || "Título do Livro"}
-                            author={formData.author || "Autor"}
-                            genre={formData.genre}
-                            className="w-full h-full rounded-lg shadow-md"
-                          />
-                        </div>
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                          <Upload
-                            className="mx-auto mb-2 text-gray-400"
-                            size={32}
-                          />
-                          <p className="text-sm text-muted-foreground mb-1">
-                            Clique para adicionar uma capa
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            JPG, PNG ou URL da imagem
-                          </p>
-                        </div>
+                      <div className="w-48 h-64 mx-auto">
+                        <DefaultBookCover
+                          title={title || "Título do Livro"}
+                          author={author || "Autor"}
+                          genre={genre}
+                          className="w-full h-full rounded-lg shadow-md"
+                        />
                       </div>
                     )}
                   </div>
@@ -535,18 +500,15 @@ export function BookForm({
                     <div className="text-sm text-muted-foreground">
                       <p>Ou cole uma URL:</p>
                       <input
+                        {...register("cover")}
                         type="url"
-                        value={formData.cover}
-                        onChange={(e) => {
-                          setFormData((prev) => ({
-                            ...prev,
-                            cover: e.target.value,
-                          }));
-                          setImagePreview(e.target.value);
-                        }}
-                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        onChange={(e) => setImagePreview(e.target.value)}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm dark:bg-gray-800 dark:border-gray-600"
                         placeholder="https://exemplo.com/capa.jpg"
                       />
+                      {errors.cover && (
+                        <p className="text-red-500 text-xs mt-1">{errors.cover.message}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -554,14 +516,15 @@ export function BookForm({
             </div>
 
             <div className="flex gap-4 pt-6 border-t">
-              <Button type="submit" className="flex-1">
-                {isEditing ? "Salvar Alterações" : "Adicionar Livro"}
+              <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                {isSubmitting ? "Salvando..." : isEditing ? "Salvar Alterações" : "Adicionar Livro"}
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 onClick={onCancel}
                 className="flex-1"
+                disabled={isSubmitting}
               >
                 Cancelar
               </Button>
