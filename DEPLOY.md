@@ -93,24 +93,57 @@ git commit -m "Migrar para PostgreSQL"
 git push
 ```
 
-#### Opção B: Usar Turso (SQLite na nuvem - GRATUITO)
+#### Opção B: Usar Turso (SQLite na nuvem - GRATUITO) ⭐ JÁ CONFIGURADO!
 
-1. Acesse: https://turso.tech
-2. Crie um banco de dados
-3. Copie a `DATABASE_URL` (formato: `libsql://...`)
-4. Configure no Vercel:
-```
-DATABASE_URL=libsql://seu-banco.turso.io
-TURSO_AUTH_TOKEN=seu_token
+**Este projeto já está preparado para Turso!** Siga os passos:
+
+**1. Instalar Turso CLI:**
+```bash
+npm install -g @turso/cli
 ```
 
-5. Atualize o `schema.prisma`:
-```prisma
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
+**2. Criar conta e login:**
+```bash
+turso auth signup
+# Ou se já tiver conta:
+turso auth login
 ```
+
+**3. Criar banco de dados:**
+```bash
+turso db create bookshelf
+```
+
+**4. Obter URL do banco:**
+```bash
+turso db show bookshelf --url
+```
+Copie a URL (ex: `libsql://bookshelf-seu-usuario.turso.io`)
+
+**5. Criar token de autenticação:**
+```bash
+turso db tokens create bookshelf
+```
+Copie o token (ex: `eyJhbGc...`)
+
+**6. Configurar na Vercel:**
+
+Adicione estas variáveis de ambiente:
+```
+DATABASE_URL=file:./dev.db
+TURSO_DATABASE_URL=libsql://bookshelf-seu-usuario.turso.io
+TURSO_AUTH_TOKEN=eyJhbGc...seu-token
+```
+
+**7. Criar tabelas no Turso:**
+```bash
+# Conectar ao banco
+turso db shell bookshelf
+
+# Copiar o SQL do arquivo: prisma/migrations/20250930003603_init/migration.sql
+```
+
+**Pronto! ✅** O projeto detecta automaticamente quando está em produção e usa Turso.
 
 #### Opção C: Para Testes (SQLite local - dados temporários)
 
