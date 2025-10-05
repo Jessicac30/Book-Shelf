@@ -169,4 +169,3 @@ Este projeto foi desenvolvido como trabalho em grupo:
 ⭐ Se este projeto te ajudou, considere dar uma estrela no GitHub!
 
 **Desenvolvido com ❤️ usando Next.js 15 e React 19**
-
