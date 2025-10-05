@@ -155,7 +155,7 @@ export function BookForm({
       Boolean
     ).length;
     const optionalFields = [
-      formData.genre,
+      formData.genreId,
       formData.year,
       formData.pages,
       formData.isbn,
@@ -585,7 +585,7 @@ export function BookForm({
                           <DefaultBookCover
                             title={formData.title || "Título do Livro"}
                             author={formData.author || "Autor"}
-                            genre={formData.genre}
+                            genre={undefined}
                             className="w-full h-full rounded-lg shadow-md"
                           />
                         </div>

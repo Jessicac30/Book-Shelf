@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Book, Genre } from "@/types/book";
+import { Book, LegacyGenre } from "@/types/book";
 import { Upload, X, Search } from "lucide-react";
 import { DefaultBookCover } from "./default-book-cover";
 import { bookSchema, type BookFormData } from "@/lib/validations/book";
@@ -26,7 +26,7 @@ const statusLabels = {
   ABANDONADO: "Abandonado",
 } as const;
 
-const genres: Genre[] = [
+const genres: LegacyGenre[] = [
   "Literatura Brasileira",
   "Ficção Científica",
   "Realismo Mágico",
@@ -61,7 +61,7 @@ export function BookForm({
     defaultValues: {
       title: book?.title || "",
       author: book?.author || "",
-      genre: book?.genre || undefined,
+      genreId: book?.genreId || undefined,
       year: book?.year || undefined,
       pages: book?.pages || undefined,
       currentPage: book?.currentPage || 0,
