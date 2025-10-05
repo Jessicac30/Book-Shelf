@@ -3,18 +3,18 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Book, Genre, ReadingStatus } from "@/types/book";
+import { BookWithGenre, LegacyGenre, ReadingStatus, BookFormData } from "@/types/book";
 import { Upload, X, Search } from "lucide-react";
 import { DefaultBookCover } from "./default-book-cover";
 
 interface BookFormProps {
-  book?: Book;
-  onSubmit: (book: Omit<Book, "id">) => void;
+  book?: BookWithGenre;
+  onSubmit: (book: BookFormData) => void;
   onCancel: () => void;
   isEditing?: boolean;
 }
 
-const genres: Genre[] = [
+const genres: LegacyGenre[] = [
   "Literatura Brasileira",
   "Ficção Científica",
   "Realismo Mágico",
@@ -56,19 +56,19 @@ export function BookForm({
   onCancel,
   isEditing = false,
 }: BookFormProps) {
-  const [formData, setFormData] = useState<Omit<Book, "id">>({
+  const [formData, setFormData] = useState<BookFormData>({
     title: book?.title || "",
     author: book?.author || "",
-    genre: book?.genre,
-    year: book?.year,
-    pages: book?.pages,
-    currentPage: book?.currentPage || 0,
+    genreId: book?.genreId ?? undefined,
+    year: book?.year ?? undefined,
+    pages: book?.pages ?? undefined,
+    currentPage: book?.currentPage ?? 0,
     status: book?.status || "QUERO_LER",
-    isbn: book?.isbn || "",
-    cover: book?.cover || "",
-    rating: book?.rating || 0,
-    synopsis: book?.synopsis || "",
-    notes: book?.notes || "",
+    isbn: book?.isbn ?? undefined,
+    cover: book?.cover ?? undefined,
+    rating: book?.rating ?? 0,
+    synopsis: book?.synopsis ?? undefined,
+    notes: book?.notes ?? undefined,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -337,11 +337,11 @@ export function BookForm({
                       Gênero
                     </label>
                     <select
-                      value={formData.genre || ""}
+                      value={formData.genreId || ""}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          genre: (e.target.value as Genre) || undefined,
+                          genreId: e.target.value || undefined,
                         }))
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
