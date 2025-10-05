@@ -382,9 +382,9 @@ export default function BibliotecaClient({ initialBooks }: Props) {
 
               <CardContent className="flex-1 flex flex-col">
                 <div className="space-y-2 flex-1">
-                  {book.genre && (
+                  {book.genre?.name && (
                     <p className="text-sm text-muted-foreground">
-                      <strong>Gênero:</strong> {book.genre}
+                      <strong>Gênero:</strong> {book.genre.name}
                     </p>
                   )}
                   {book.year && (
@@ -394,8 +394,8 @@ export default function BibliotecaClient({ initialBooks }: Props) {
                   )}
                   {book.pages && book.pages > 0 && (
                     <p className="text-sm text-muted-foreground">
-                      <strong>Páginas:</strong> {book.currentPage > 0 ? `${book.currentPage}/` : ''}{book.pages}
-                      {book.currentPage > 0 && (
+                      <strong>Páginas:</strong> {(book.currentPage ?? 0) > 0 ? `${book.currentPage}/` : ''}{book.pages}
+                      {(book.currentPage ?? 0) > 0 && book.currentPage && (
                         <span className="ml-2 text-xs">
                           ({Math.round((book.currentPage / book.pages) * 100)}%)
                         </span>
