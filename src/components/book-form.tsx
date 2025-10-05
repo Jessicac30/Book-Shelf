@@ -56,7 +56,7 @@ export function BookForm({
     formState: { errors, isSubmitting },
     watch,
     setValue,
-  } = useForm<BookFormData>({
+  } = useForm({
     resolver: zodResolver(bookSchema),
     defaultValues: {
       title: book?.title || "",
@@ -84,7 +84,7 @@ export function BookForm({
   const watchedValues = watch();
   const title = watch("title");
   const author = watch("author");
-  const genre = watch("genre");
+  const genreId = watch("genreId");
   const year = watch("year");
   const pages = watch("pages");
   const isbn = watch("isbn");
@@ -92,7 +92,7 @@ export function BookForm({
 
   const getProgressPercentage = (): number => {
     const requiredFields = [title, author].filter(Boolean).length;
-    const optionalFields = [genre, year, pages, isbn, imagePreview, synopsis].filter(Boolean).length;
+    const optionalFields = [genreId, year, pages, isbn, imagePreview, synopsis].filter(Boolean).length;
     const total = 8;
     const filled = requiredFields + optionalFields;
     return Math.round((filled / total) * 100);
@@ -275,8 +275,8 @@ export function BookForm({
                       Gênero
                     </label>
                     <Select
-                      value={watchedValues.genre || ""}
-                      onValueChange={(value) => setValue("genre", value as Genre)}
+                      value={watchedValues.genreId || ""}
+                      onValueChange={(value) => setValue("genreId", value)}
                     >
                       <SelectTrigger className="w-full dark:bg-gray-800 dark:border-gray-600">
                         <SelectValue placeholder="Selecione um gênero" />
@@ -289,8 +289,8 @@ export function BookForm({
                         ))}
                       </SelectContent>
                     </Select>
-                    {errors.genre && (
-                      <p className="text-red-500 text-sm mt-1">{errors.genre.message}</p>
+                    {errors.genreId && (
+                      <p className="text-red-500 text-sm mt-1">{errors.genreId.message}</p>
                     )}
                   </div>
 
@@ -471,7 +471,7 @@ export function BookForm({
                         <DefaultBookCover
                           title={title || "Título do Livro"}
                           author={author || "Autor"}
-                          genre={genre}
+                          genre={genreId}
                           className="w-full h-full rounded-lg shadow-md"
                         />
                       </div>

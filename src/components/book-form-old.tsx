@@ -502,7 +502,7 @@ export function BookForm({
                   </label>
                   <input
                     type="text"
-                    value={formData.isbn}
+                    value={formData.isbn ?? ""}
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, isbn: e.target.value }))
                     }
@@ -521,7 +521,7 @@ export function BookForm({
                     Sinopse
                   </label>
                   <textarea
-                    value={formData.synopsis}
+                    value={formData.synopsis ?? ""}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
@@ -539,7 +539,7 @@ export function BookForm({
                     Notas Pessoais
                   </label>
                   <textarea
-                    value={formData.notes}
+                    value={formData.notes ?? ""}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
@@ -628,7 +628,7 @@ export function BookForm({
                       <p>Ou cole uma URL:</p>
                       <input
                         type="url"
-                        value={formData.cover}
+                        value={formData.cover ?? ""}
                         onChange={(e) => {
                           setFormData((prev) => ({
                             ...prev,

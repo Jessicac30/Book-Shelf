@@ -258,7 +258,7 @@ export function BookProvider({ children }: { children: ReactNode }) {
   }
 
   const getBooksByGenre = (genre: Genre): Book[] => {
-    return state.books.filter(book => book.genre === genre)
+    return state.books.filter(book => book.genreId === genre.id)
   }
 
   const searchBooks = (query: string): Book[] => {
@@ -268,8 +268,7 @@ export function BookProvider({ children }: { children: ReactNode }) {
     return state.books.filter(
       book =>
         book.title.toLowerCase().includes(lowercaseQuery) ||
-        book.author.toLowerCase().includes(lowercaseQuery) ||
-        book.genre?.toLowerCase().includes(lowercaseQuery)
+        book.author.toLowerCase().includes(lowercaseQuery)
     )
   }
 
@@ -288,7 +287,7 @@ export function BookProvider({ children }: { children: ReactNode }) {
 
     // Filtro por gênero
     if (state.filters.genre !== 'all') {
-      filtered = filtered.filter(book => book.genre === state.filters.genre)
+      filtered = filtered.filter(book => book.genreId === state.filters.genre)
     }
 
     // Filtro por status

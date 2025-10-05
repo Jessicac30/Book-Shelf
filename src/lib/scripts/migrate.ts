@@ -69,16 +69,16 @@ export async function migrateFromLocalStorage(legacyData: LegacyBook[]) {
       const bookData = {
         title: legacyBook.title,
         author: legacyBook.author,
-        genreId,
-        year: legacyBook.year,
-        pages: legacyBook.pages,
-        currentPage: legacyBook.currentPage || 0,
+        genreId: genreId ?? null,
+        year: legacyBook.year ?? null,
+        pages: legacyBook.pages ?? null,
+        currentPage: legacyBook.currentPage ?? null,
         status: legacyBook.status || 'QUERO_LER',
-        isbn: legacyBook.isbn,
-        cover: legacyBook.cover,
-        rating: legacyBook.rating,
-        synopsis: legacyBook.synopsis,
-        notes: legacyBook.notes
+        isbn: legacyBook.isbn ?? null,
+        cover: legacyBook.cover ?? null,
+        rating: legacyBook.rating ?? null,
+        synopsis: legacyBook.synopsis ?? null,
+        notes: legacyBook.notes ?? null
       }
       
       await bookService.createBook(bookData)

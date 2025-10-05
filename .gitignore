@@ -80,3 +80,4 @@ prisma/*.db-journal
 *.db-journal
 *.db-shm
 *.db-wal
+nul

@@ -8,20 +8,8 @@ export interface BookWithGenre extends Book {
   genre?: Genre | null
 }
 
-export interface BookFormData {
-  title: string
-  author: string
-  genreId?: string
-  year?: number
-  pages?: number
-  currentPage?: number
-  status?: ReadingStatus
-  isbn?: string
-  cover?: string
-  rating?: number
-  synopsis?: string
-  notes?: string
-}
+// BookFormData is exported from lib/validations/book.ts (Zod inferred type)
+export type { BookFormData } from '@/lib/validations/book'
 
 export interface BooksResponse {
   books: BookWithGenre[]

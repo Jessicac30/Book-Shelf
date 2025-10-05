@@ -11,9 +11,8 @@ export const bookSchema = z.object({
     .min(1, "Autor é obrigatório")
     .max(200, "Autor deve ter no máximo 200 caracteres"),
 
-  genre: z.string()
-    .optional()
-    .nullable(),
+  genreId: z.string()
+    .optional(),
 
   year: z.preprocess(
     (val) => {

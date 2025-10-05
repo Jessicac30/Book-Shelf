@@ -31,8 +31,8 @@ export const validators = {
   },
 
   // Validação de ano
-  year: (value: number | string | undefined): string | null => {
-    if (value === undefined || value === '') {
+  year: (value: number | string | null | undefined): string | null => {
+    if (value === undefined || value === '' || value === null) {
       return null // Campo opcional
     }
     
@@ -51,8 +51,8 @@ export const validators = {
   },
 
   // Validação de páginas
-  pages: (value: number | string | undefined): string | null => {
-    if (value === undefined || value === '') {
+  pages: (value: number | string | null | undefined): string | null => {
+    if (value === undefined || value === '' || value === null) {
       return null // Campo opcional
     }
     
@@ -74,8 +74,8 @@ export const validators = {
   },
 
   // Validação de página atual
-  currentPage: (value: number | string | undefined, totalPages?: number): string | null => {
-    if (value === undefined || value === '') {
+  currentPage: (value: number | string | null | undefined, totalPages?: number | null): string | null => {
+    if (value === undefined || value === '' || value === null) {
       return null // Campo opcional
     }
     
@@ -97,7 +97,7 @@ export const validators = {
   },
 
   // Validação de ISBN
-  isbn: (value: string | undefined): string | null => {
+  isbn: (value: string | null | undefined): string | null => {
     if (!value?.trim()) {
       return null // Campo opcional
     }
@@ -114,7 +114,7 @@ export const validators = {
   },
 
   // Validação de URL da capa
-  cover: (value: string | undefined): string | null => {
+  cover: (value: string | null | undefined): string | null => {
     if (!value?.trim()) {
       return null // Campo opcional
     }
@@ -128,8 +128,8 @@ export const validators = {
   },
 
   // Validação de rating
-  rating: (value: number | string | undefined): string | null => {
-    if (value === undefined || value === '') {
+  rating: (value: number | string | null | undefined): string | null => {
+    if (value === undefined || value === '' || value === null) {
       return null // Campo opcional
     }
     
@@ -147,12 +147,12 @@ export const validators = {
   },
 
   // Validação de gênero
-  genre: (value: string | undefined): string | null => {
+  genre: (value: string | null | undefined): string | null => {
     if (!value) {
       return null // Campo opcional
     }
     
-    const validGenres: Genre[] = [
+    const validGenres: string[] = [
       'Literatura Brasileira',
       'Ficção Científica',
       'Realismo Mágico',
@@ -169,8 +169,8 @@ export const validators = {
       'Filosofia',
       'Poesia'
     ]
-    
-    if (!validGenres.includes(value as Genre)) {
+
+    if (!validGenres.includes(value)) {
       return 'Gênero selecionado é inválido'
     }
     
@@ -199,7 +199,7 @@ export const validators = {
   },
 
   // Validação de sinopse
-  synopsis: (value: string | undefined): string | null => {
+  synopsis: (value: string | null | undefined): string | null => {
     if (!value?.trim()) {
       return null // Campo opcional
     }
@@ -212,7 +212,7 @@ export const validators = {
   },
 
   // Validação de notas
-  notes: (value: string | undefined): string | null => {
+  notes: (value: string | null | undefined): string | null => {
     if (!value?.trim()) {
       return null // Campo opcional
     }
@@ -255,8 +255,8 @@ export function validateBook(book: Partial<Book>): Record<string, string> {
   const ratingError = validators.rating(book.rating)
   if (ratingError) errors.rating = ratingError
   
-  const genreError = validators.genre(book.genre)
-  if (genreError) errors.genre = genreError
+  const genreError = validators.genre(book.genreId)
+  if (genreError) errors.genreId = genreError
   
   const statusError = validators.status(book.status)
   if (statusError) errors.status = statusError

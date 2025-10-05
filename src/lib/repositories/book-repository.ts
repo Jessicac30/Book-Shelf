@@ -40,8 +40,8 @@ class BookRepository {
     
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { author: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search } },
+        { author: { contains: search } },
       ]
     }
     
@@ -257,8 +257,8 @@ class BookRepository {
     
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { author: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search } },
+        { author: { contains: search } },
       ]
     }
     
