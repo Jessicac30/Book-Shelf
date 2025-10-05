@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useNotification } from "@/components/notification";
-import type { Book, Genre } from "@/types/book";
+import type { BookWithGenre, LegacyGenre } from "@/types/book";
 import { Edit, Trash2, Plus, Search, Filter, Eye, Library, Sparkles } from "lucide-react";
 import { DefaultBookCover } from "@/components/default-book-cover";
 import { ConfirmModal } from "@/components/confirm-modal";
@@ -29,17 +29,17 @@ import { Pagination } from "@/components/ui/pagination";
 import { Recommendations } from "@/components/recommendations";
 import { deleteBookFromClient } from "./actions";
 
-type Props = { initialBooks: Book[] };
+type Props = { initialBooks: BookWithGenre[] };
 
 const BOOKS_PER_PAGE = 12;
 
 export default function BibliotecaClient({ initialBooks }: Props) {
   const [activeTab, setActiveTab] = useState("meus-livros");
-  const [books, setBooks] = useState<Book[]>(initialBooks);
-  const [filteredBooks, setFilteredBooks] = useState<Book[]>(initialBooks);
-  const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
+  const [books, setBooks] = useState<BookWithGenre[]>(initialBooks);
+  const [filteredBooks, setFilteredBooks] = useState<BookWithGenre[]>(initialBooks);
+  const [bookToDelete, setBookToDelete] = useState<BookWithGenre | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedGenre, setSelectedGenre] = useState<Genre | "all">("all");
+  const [selectedGenre, setSelectedGenre] = useState<LegacyGenre | "all">("all");
   const [currentPage, setCurrentPage] = useState(1);
 
   const router = useRouter();
@@ -87,7 +87,7 @@ export default function BibliotecaClient({ initialBooks }: Props) {
     setFilteredBooks(books);
   }, [books]);
 
-  const genres: Genre[] = [
+  const genres: LegacyGenre[] = [
     "Literatura Brasileira",
     "Ficção Científica",
     "Realismo Mágico",
@@ -107,7 +107,7 @@ export default function BibliotecaClient({ initialBooks }: Props) {
 
   useEffect(() => {
     const urlSearch = searchParams.get("search") || "";
-    const urlGenre = (searchParams.get("genre") as Genre | "all") || "all";
+    const urlGenre = (searchParams.get("genre") as LegacyGenre | "all") || "all";
 
     setSearchQuery(urlSearch);
     setSelectedGenre(urlGenre);
@@ -115,9 +115,9 @@ export default function BibliotecaClient({ initialBooks }: Props) {
   }, [searchParams, books]);
 
   const filterBooks = (
-    bookList: Book[],
+    bookList: BookWithGenre[],
     search: string,
-    genre: Genre | "all"
+    genre: LegacyGenre | "all"
   ) => {
     let filtered = bookList;
     if (search) {
@@ -129,13 +129,13 @@ export default function BibliotecaClient({ initialBooks }: Props) {
       );
     }
     if (genre !== "all") {
-      filtered = filtered.filter((book) => book.genre === genre);
+      filtered = filtered.filter((book) => book.genre?.name === genre);
     }
     setFilteredBooks(filtered);
     setCurrentPage(1); // Reset para primeira página ao filtrar
   };
 
-  const updateUrlParams = (search: string, genre: Genre | "all") => {
+  const updateUrlParams = (search: string, genre: LegacyGenre | "all") => {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (genre !== "all") params.set("genre", genre);
@@ -149,7 +149,7 @@ export default function BibliotecaClient({ initialBooks }: Props) {
     updateUrlParams(value, selectedGenre);
   };
 
-  const handleGenreChange = (value: Genre | "all") => {
+  const handleGenreChange = (value: LegacyGenre | "all") => {
     setSelectedGenre(value);
     filterBooks(books, searchQuery, value);
     updateUrlParams(searchQuery, value);
@@ -170,7 +170,7 @@ export default function BibliotecaClient({ initialBooks }: Props) {
     router.push(`/biblioteca/${bookId}`);
   };
 
-  const handleDelete = (book: Book) => {
+  const handleDelete = (book: BookWithGenre) => {
     setBookToDelete(book);
   };
 

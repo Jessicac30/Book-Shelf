@@ -4,7 +4,7 @@ import { Genre } from '@/types/book'
 interface DefaultBookCoverProps {
   title: string
   author: string
-  genre?: Genre
+  genre?: Genre | string | null
   className?: string
   onClick?: () => void
 }
@@ -29,10 +29,11 @@ const genreColors: Record<string, string> = {
 }
 
 export function DefaultBookCover({ title, author, genre, className = "", onClick }: DefaultBookCoverProps) {
-  const colorClass = genreColors[genre || 'default'] || genreColors.default
+  const genreName = typeof genre === 'string' ? genre : genre?.name
+  const colorClass = genreColors[genreName || 'default'] || genreColors.default
 
   return (
-    <div 
+    <div
       className={`bg-gradient-to-br ${colorClass} text-white flex flex-col items-center justify-center p-3 text-center ${className} ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
     >
@@ -43,9 +44,9 @@ export function DefaultBookCover({ title, author, genre, className = "", onClick
       <div className="text-xs opacity-75 line-clamp-2">
         {author}
       </div>
-      {genre && (
+      {genreName && (
         <div className="text-xs opacity-60 mt-1 uppercase tracking-wide">
-          {genre}
+          {genreName}
         </div>
       )}
     </div>

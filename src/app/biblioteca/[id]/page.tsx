@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useNotification } from "@/components/notification";
-import { Book } from "@/types/book";
+import { BookWithGenre } from "@/types/book";
 import { deleteBookFromClient } from "../actions";
 import {
   ArrowLeft,
@@ -26,7 +26,7 @@ import { DefaultBookCover } from "@/components/default-book-cover";
 import { ConfirmModal } from "@/components/confirm-modal";
 
 export default function BookDetailPage() {
-  const [book, setBook] = useState<Book | null>(null);
+  const [book, setBook] = useState<BookWithGenre | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const router = useRouter();
@@ -39,7 +39,7 @@ export default function BookDetailPage() {
       const res = await fetch(`/api/books/${params.id}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('not found');
       const data = await res.json();
-      setBook(data as Book);
+      setBook(data as BookWithGenre);
     } catch {
       setBook(null);
     } finally {
@@ -208,7 +208,7 @@ export default function BookDetailPage() {
                   <DefaultBookCover
                     title={book.title}
                     author={book.author}
-                    genre={book.genre}
+                    genre={book.genre?.name}
                     className="w-full h-full"
                   />
                 </div>
@@ -255,12 +255,12 @@ export default function BookDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {book.genre && (
+                {book.genre?.name && (
                   <div className="flex items-center space-x-2">
                     <BookOpen size={18} className="text-muted-foreground" />
                     <span className="font-medium">Gênero:</span>
                     <span className="bg-gray-100 px-2 py-1 rounded-md text-sm dark:bg-gray-800 dark:text-gray-200">
-                      {book.genre}
+                      {book.genre.name}
                     </span>
                   </div>
                 )}

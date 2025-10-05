@@ -1,20 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { Book } from "@/types/book";
+import type { BookFormData } from "@/types/book";
 import { prisma } from "@/lib/prisma";
 
-export async function createBookFromClient(data: Omit<Book, "id">) {
+export async function createBookFromClient(data: BookFormData) {
   // Resolver/garantir gênero
-  let genreId: string | undefined;
-  if (data.genre) {
-    const g = await prisma.genre.upsert({
-      where: { name: data.genre },
-      create: { name: data.genre },
-      update: {},
-    });
-    genreId = g.id;
-  }
+  let genreId: string | undefined = data.genreId;
 
   // status derivado se não informado
   let derivedStatus = data.status;
@@ -48,16 +40,8 @@ export async function createBookFromClient(data: Omit<Book, "id">) {
   return created;
 }
 
-export async function updateBookFromClient(id: string, patch: Partial<Book>) {
-  let genreId: string | undefined;
-  if (typeof patch.genre === "string" && patch.genre.trim()) {
-    const g = await prisma.genre.upsert({
-      where: { name: patch.genre },
-      create: { name: patch.genre },
-      update: {},
-    });
-    genreId = g.id;
-  }
+export async function updateBookFromClient(id: string, patch: Partial<BookFormData>) {
+  let genreId: string | undefined = patch.genreId;
 
   // Buscar livro existente para comparar valores
   const existing = await prisma.book.findUnique({ where: { id } });
