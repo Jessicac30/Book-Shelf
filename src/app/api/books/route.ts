@@ -37,6 +37,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    console.log('📝 POST /api/books - Iniciando criação de livro');
     const body = await req.json().catch(() => null);
     if (!body)
       return NextResponse.json({ error: "invalid body" }, { status: 400 });
@@ -47,6 +48,9 @@ export async function POST(req: Request) {
       genre?: string;
       [k: string]: any;
     };
+
+    console.log('📚 Dados recebidos:', { title, author, genre });
+
     if (!title || !author) {
       return NextResponse.json(
         { error: "title e author são obrigatórios" },
@@ -55,9 +59,11 @@ export async function POST(req: Request) {
     }
 
     // Garantir gênero (find-or-create)
+    console.log('🏷️ Criando/buscando gênero:', genre);
     const genreRecord = genre
       ? await prisma.genre.upsert({ where: { name: genre }, create: { name: genre }, update: {} })
       : null;
+    console.log('✅ Gênero processado:', genreRecord?.id);
 
     // Derivar status se não enviado
     let derivedStatus = rest.status;
@@ -69,6 +75,7 @@ export async function POST(req: Request) {
       else derivedStatus = 'QUERO_LER';
     }
 
+    console.log('💾 Criando livro no banco...');
     const created = await prisma.book.create({
       data: {
         title,
@@ -87,9 +94,10 @@ export async function POST(req: Request) {
       include: { genre: true },
     });
 
+    console.log('✅ Livro criado com sucesso:', created.id);
     return NextResponse.json(mapPrismaBookToDto(created), { status: 201 });
   } catch (error) {
-    console.error('Error creating book:', error);
+    console.error('❌ Error creating book:', error);
     return NextResponse.json(
       { error: 'Failed to create book', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }

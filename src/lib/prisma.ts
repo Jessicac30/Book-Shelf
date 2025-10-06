@@ -10,12 +10,23 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  const tursoUrl = process.env.TURSO_DATABASE_URL
-  const tursoToken = process.env.TURSO_AUTH_TOKEN
+  // Detectar se está no Vercel
+  const isVercel = process.env.VERCEL === '1'
 
-  // Se estiver usando Turso (produção), use o adapter
-  if (tursoUrl && tursoToken) {
-    console.log('🔄 Conectando ao Turso database')
+  // Se estiver no Vercel, SEMPRE usar Turso
+  if (isVercel) {
+    console.log('🌐 Detectado ambiente Vercel - usando Turso')
+    const tursoUrl = process.env.TURSO_DATABASE_URL
+    const tursoToken = process.env.TURSO_AUTH_TOKEN
+
+    if (!tursoUrl || !tursoToken) {
+      console.error('❌ ERRO: Variáveis Turso não encontradas!')
+      console.error('TURSO_DATABASE_URL:', tursoUrl ? 'definida' : 'undefined')
+      console.error('TURSO_AUTH_TOKEN:', tursoToken ? 'definida' : 'undefined')
+      throw new Error('Variáveis de ambiente do Turso não configuradas no Vercel!')
+    }
+
+    console.log('✅ Conectando ao Turso:', tursoUrl.substring(0, 30) + '...')
     const { PrismaLibSQL } = require('@prisma/adapter-libsql')
     const { createClient } = require('@libsql/client')
 
@@ -28,12 +39,12 @@ function createPrismaClient() {
 
     return new PrismaClient({
       adapter,
-      log: ['error'],
+      log: ['error', 'warn'],
     })
   }
 
   // Caso contrário, use SQLite local (desenvolvimento)
-  console.log('🔄 Usando SQLite local')
+  console.log('💻 Ambiente local - usando SQLite')
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   })
