@@ -137,7 +137,8 @@ IMPORTANTE:
 
     return JSON.parse(jsonMatch[0]);
   } catch (error: any) {
-    console.error("Erro ao analisar com Gemini:", error.message);
+    console.error("Erro ao analisar com Gemini:", error);
+    console.error("Status:", error.status, "Message:", error.message);
     throw error; // Re-throw para usar fallback
   }
 }
