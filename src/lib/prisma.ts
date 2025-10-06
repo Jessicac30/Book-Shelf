@@ -10,41 +10,42 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  // Detectar se está no Vercel
-  const isVercel = process.env.VERCEL === '1'
+  const isProduction = process.env.VERCEL === '1'
 
-  // Se estiver no Vercel, SEMPRE usar Turso
-  if (isVercel) {
-    console.log('🌐 Detectado ambiente Vercel - usando Turso')
-    const tursoUrl = process.env.TURSO_DATABASE_URL
-    const tursoToken = process.env.TURSO_AUTH_TOKEN
+  if (isProduction) {
+    console.log('🚀 Produção detectada - configurando Turso')
 
-    if (!tursoUrl || !tursoToken) {
-      console.error('❌ ERRO: Variáveis Turso não encontradas!')
-      console.error('TURSO_DATABASE_URL:', tursoUrl ? 'definida' : 'undefined')
-      console.error('TURSO_AUTH_TOKEN:', tursoToken ? 'definida' : 'undefined')
-      throw new Error('Variáveis de ambiente do Turso não configuradas no Vercel!')
+    // Ler variáveis
+    const url = process.env.TURSO_DATABASE_URL || ''
+    const authToken = process.env.TURSO_AUTH_TOKEN || ''
+
+    console.log('📊 Debug:', {
+      hasUrl: !!url,
+      hasToken: !!authToken,
+      urlStart: url.substring(0, 20)
+    })
+
+    if (!url || !authToken) {
+      console.error('❌ Variáveis Turso ausentes!')
+      // Fallback para erro mais claro
+      throw new Error('TURSO_DATABASE_URL ou TURSO_AUTH_TOKEN não configurados')
     }
 
-    console.log('✅ Conectando ao Turso:', tursoUrl.substring(0, 30) + '...')
     const { PrismaLibSQL } = require('@prisma/adapter-libsql')
     const { createClient } = require('@libsql/client')
 
-    const libsql = createClient({
-      url: tursoUrl,
-      authToken: tursoToken,
-    })
-
+    const libsql = createClient({ url, authToken })
     const adapter = new PrismaLibSQL(libsql)
+
+    console.log('✅ Turso configurado')
 
     return new PrismaClient({
       adapter,
-      log: ['error', 'warn'],
+      log: ['error'],
     })
   }
 
-  // Caso contrário, use SQLite local (desenvolvimento)
-  console.log('💻 Ambiente local - usando SQLite')
+  console.log('💻 Desenvolvimento - SQLite local')
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   })
