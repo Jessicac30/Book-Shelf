@@ -34,10 +34,12 @@ function createPrismaClient() {
     const { PrismaLibSQL } = require('@prisma/adapter-libsql')
     const { createClient } = require('@libsql/client')
 
+    console.log('🔌 Criando cliente Turso com:', { url: url.substring(0, 30), tokenLength: authToken.length })
     const libsql = createClient({ url, authToken })
+    console.log('🔌 Cliente criado, criando adapter...')
     const adapter = new PrismaLibSQL(libsql)
 
-    console.log('✅ Turso configurado')
+    console.log('✅ Turso configurado completamente')
 
     return new PrismaClient({
       adapter,
