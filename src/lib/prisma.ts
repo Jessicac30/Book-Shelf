@@ -12,18 +12,10 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient() {
   const tursoUrl = process.env.TURSO_DATABASE_URL
   const tursoToken = process.env.TURSO_AUTH_TOKEN
-  const isProduction = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production'
-
-  console.log('🔍 Debug Prisma Config:', {
-    isProduction,
-    hasUrl: !!tursoUrl,
-    hasTok: !!tursoToken,
-    urlPrefix: tursoUrl?.substring(0, 20),
-  })
 
   // Se estiver usando Turso (produção), use o adapter
-  if (isProduction && tursoUrl && tursoToken) {
-    console.log('🔄 Usando Turso database')
+  if (tursoUrl && tursoToken) {
+    console.log('🔄 Conectando ao Turso database')
     const { PrismaLibSQL } = require('@prisma/adapter-libsql')
     const { createClient } = require('@libsql/client')
 
@@ -36,8 +28,7 @@ function createPrismaClient() {
 
     return new PrismaClient({
       adapter,
-      log: ['error', 'warn'],
-      errorFormat: 'minimal',
+      log: ['error'],
     })
   }
 
@@ -45,7 +36,6 @@ function createPrismaClient() {
   console.log('🔄 Usando SQLite local')
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-    errorFormat: 'pretty',
   })
 }
 
