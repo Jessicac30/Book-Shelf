@@ -19,7 +19,7 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.2.2",
-    "@libsql/client": "^0.15.15",
+    "@libsql/client": "0.8.1",
     "@prisma/adapter-libsql": "^6.16.3",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-select": "^2.2.6",

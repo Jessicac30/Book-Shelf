@@ -35,7 +35,14 @@ function createPrismaClient() {
     const { createClient } = require('@libsql/client')
 
     console.log('🔌 Criando cliente Turso com:', { url: url.substring(0, 30), tokenLength: authToken.length })
-    const libsql = createClient({ url, authToken })
+
+    // Criar cliente com configuração explícita
+    const libsql = createClient({
+      url: url,
+      authToken: authToken,
+      intMode: 'number',
+    })
+
     console.log('🔌 Cliente criado, criando adapter...')
     const adapter = new PrismaLibSQL(libsql)
 
@@ -43,7 +50,8 @@ function createPrismaClient() {
 
     return new PrismaClient({
       adapter,
-      log: ['error'],
+      log: ['error', 'warn', 'info'],
+      errorFormat: 'pretty',
     })
   }
 
