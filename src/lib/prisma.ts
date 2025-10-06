@@ -14,6 +14,13 @@ function createPrismaClient() {
   const tursoToken = process.env.TURSO_AUTH_TOKEN
   const isProduction = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production'
 
+  console.log('🔍 Debug Prisma Config:', {
+    isProduction,
+    hasUrl: !!tursoUrl,
+    hasTok: !!tursoToken,
+    urlPrefix: tursoUrl?.substring(0, 20),
+  })
+
   // Se estiver usando Turso (produção), use o adapter
   if (isProduction && tursoUrl && tursoToken) {
     console.log('🔄 Usando Turso database')
@@ -29,7 +36,7 @@ function createPrismaClient() {
 
     return new PrismaClient({
       adapter,
-      log: ['error'],
+      log: ['error', 'warn'],
       errorFormat: 'minimal',
     })
   }
