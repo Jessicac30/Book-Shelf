@@ -5,8 +5,12 @@ import type { BookFormData } from "@/types/book";
 import { prisma } from "@/lib/prisma";
 
 export async function createBookFromClient(data: BookFormData) {
-  // Resolver/garantir gênero
-  let genreId: string | undefined = data.genreId;
+  // Verificar se o gênero existe antes de criar
+  let validGenreId = null;
+  if (data.genreId) {
+    const genreExists = await prisma.genre.findUnique({ where: { id: data.genreId } });
+    validGenreId = genreExists ? data.genreId : null;
+  }
 
   // status derivado se não informado
   let derivedStatus = data.status;
@@ -31,7 +35,7 @@ export async function createBookFromClient(data: BookFormData) {
       rating: data.rating ?? 0,
       synopsis: data.synopsis ?? null,
       notes: data.notes ?? null,
-      genreId,
+      genreId: validGenreId,
     },
     include: { genre: true },
   });
@@ -62,6 +66,13 @@ export async function updateBookFromClient(id: string, patch: Partial<BookFormDa
   }
   // Se o status foi explicitamente mudado pelo usuário (diferente do existente), respeitar a escolha
 
+  // Verificar se o gênero existe antes de atualizar
+  let validGenreId = null;
+  if (genreId) {
+    const genreExists = await prisma.genre.findUnique({ where: { id: genreId } });
+    validGenreId = genreExists ? genreId : null;
+  }
+
   const updated = await prisma.book.update({
     where: { id },
     data: {
@@ -76,7 +87,7 @@ export async function updateBookFromClient(id: string, patch: Partial<BookFormDa
       rating: patch.rating ?? null,
       synopsis: patch.synopsis ?? null,
       notes: patch.notes ?? null,
-      ...(genreId ? { genreId } : {}),
+      genreId: validGenreId,
     },
   });
 

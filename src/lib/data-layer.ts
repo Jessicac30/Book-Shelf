@@ -14,7 +14,7 @@
  */
 
 // Cliente Prisma e configuração
-export { prisma, connectDB, disconnectDB } from './prisma'
+export { prisma } from './prisma'
 
 // Repositórios para acesso aos dados
 export * from './repositories'
