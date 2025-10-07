@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSQL } from '@prisma/adapter-libsql'
-import { createClient } from '@libsql/client'
 
 declare global {
   // eslint-disable-next-line no-var
@@ -36,12 +35,11 @@ function createPrismaClient() {
     console.log('🔑 Auth Token (primeiros 20):', authToken.substring(0, 20))
 
     try {
-      const libsql = createClient({
+      // Com @libsql/client@0.8.1, o adapter recebe a config diretamente
+      const adapter = new PrismaLibSQL({
         url: databaseUrl,
         authToken: authToken,
       })
-
-      const adapter = new PrismaLibSQL(libsql)
 
       const client = new PrismaClient({
         adapter,
