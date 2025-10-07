@@ -86,7 +86,7 @@ export async function GET(req: Request) {
 async function analyzeWithGemini(books: any[], apiKey: string) {
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
     // Preparar dados dos livros para o Gemini
     const booksData = books.map((b) => ({
@@ -207,7 +207,7 @@ async function rankRecommendations(
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
     const booksToRank = recommendations.map((r, idx) => ({
       index: idx,

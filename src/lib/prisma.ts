@@ -11,11 +11,13 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   const isProduction = process.env.VERCEL === '1'
+  const databaseUrl = process.env.DATABASE_URL || ''
+  const isSQLite = databaseUrl.startsWith('file:')
 
   if (isProduction) {
     console.log('🌐 Produção - PostgreSQL (Neon)')
   } else {
-    console.log('💻 Desenvolvimento - PostgreSQL (Neon)')
+    console.log(`💻 Desenvolvimento - ${isSQLite ? 'SQLite' : 'PostgreSQL'}`)
   }
 
   return new PrismaClient({
